@@ -1,0 +1,11 @@
+# python -m pip install -r requirements.txt
+
+# Framework
+FastAPI==0.128.0
+
+# Server
+Uvicorn==0.40.0
+
+# Obsługa HTTP
+requests==2.32.5
+
