@@ -9,3 +9,13 @@ Uvicorn==0.40.0
 # Obsługa HTTP
 requests==2.32.5
 
+# Środowisko wirtualne
+dotenv==0.9.9
+
+# Modele LLM
+openai==2.15.0
+google-generativeai==0.8.6
+anthropic==0.76.0
+
+# Time
+tzdata==2025.3
