@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from utils import IdsData, generate_link, Post, ai_answer, current_date
+from utils import IdsData, generate_link, Post, ai_answer, def_current_date
 
 app = FastAPI()
 
@@ -22,14 +22,15 @@ def client_opinion_link_generator(request: IdsData):
 
 @app.post("/classyfi")
 async def classyfi(request: Post):
-    respons = await ai_answer(text=request.post, task=request.task)
+    respons = await ai_answer(task="classyfi", current_post=request.current_post, last_topic=request.last_topic, last_stage=request.last_stage, 
+conversation_context=request.conversation_context)
     return respons
 
 
 @app.post("/date_extract")
 async def date_extract(request: Post):
-    today = current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y")
-    respons = await ai_answer(text=request.post, current_date=today, task=request.task)
+    today = def_current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y")
+    respons = await ai_answer(task="date_extract", current_post=request.current_post, current_date=today, conversation_context=request.conversation_context)
     return respons
 
 
@@ -37,6 +38,8 @@ async def date_extract(request: Post):
 async def today():
     now = current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y", hour_format="%H:%M:%")
     return now
+
+
 
 
 if __name__ == "__main__":

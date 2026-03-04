@@ -35,17 +35,10 @@ class OpenAIProvider(AIProvider):
         self.client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 
-    async def _call_api(self, *, prompt: str, text: str, current_date=None) -> dict:
-        content_str = []
-        content_str.append(prompt)
-        if current_date is not None:
-            content_str.append(f'DZIŚ: {current_date}')
-        content_str.append(f'POST: {text}')
-        ai_content = "\n".join(content_str)
-        content = [{"type": "text", "text": ai_content}]
+    async def _call_api(self, *, prompt: str) -> dict:
         response = await self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": content}],
+            messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
         raw_response = response.choices[0].message.content
@@ -65,12 +58,9 @@ class GoogleGenerativeAIProvider(AIProvider):
         self.engine = genai.GenerativeModel(model)
 
 
-    async def _call_api(self, *, prompt: str, text: str, current_date=None) -> dict:
-        if current_date is not None:
-            content = [prompt, f'DZIŚ: {current_date}', f'POST: {text}']
-        content = [prompt, text] 
+    async def _call_api(self, *, prompt: str) -> dict:
         response = await self.engine.generate_content_async(
-            contents=content,
+            contents=prompt,
             generation_config={"response_mime_type": "application/json"}
         )
         raw_response = response.text
@@ -91,18 +81,11 @@ class AnthropicProvider(AIProvider):
         self.client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
 
 
-    async def _call_api(self, *, prompt: str, text: str, current_date=None) -> dict:
-        content_str = []
-        content_str.append(prompt)
-        if current_date is not None:
-            content_str.append(f'DZIŚ: {current_date}')
-        content_str.append(f'POST: {text}')
-
-        ai_content = "\n".join(content_str)
+    async def _call_api(self, *, prompt: str) -> dict:
         response = await self.client.messages.create(
             model=self.model,
             max_tokens=2000,
-            messages=[{"role": "user", "content": ai_content}],
+            messages=[{"role": "user", "content": prompt}],
         )
         raw_response = response.content[0].text
         tokens_input = response.usage.input_tokens

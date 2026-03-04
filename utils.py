@@ -4,11 +4,10 @@ from pydantic import BaseModel
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 import random
+import json
 import os
 from config import CONFIG_LINK, AI_PROVIDER_LIST, TASKS
 from ai_provider import get_ai_provider
-
-
 
 
 class IdsData(BaseModel):
@@ -18,7 +17,11 @@ class IdsData(BaseModel):
 
 class Post(BaseModel):
     task: str
-    post: str
+    current_post: str
+    last_topic: str | None=None
+    last_stage: str | None=None
+    conversation_context: str | None=None
+
 
 def generate_link(id: str, task: str) -> str:
     config_data = CONFIG_LINK.get(task)
@@ -51,7 +54,39 @@ def load_prompt(task: str) -> str:
         raise ValueError (f'nie obsługiwane zadanie: {task}')
 
 
-def current_date(*, time_zone: str, date_format=None, hour_format=None) -> dict:
+def prompt_generator(*, task: str, current_post: str, last_topic: str | None=None, last_stage:str | None=None, 
+conversation_context: str | None=None, current_date: str | None=None) -> str:
+    if task is None or isinstance(task, str) and not task.strip():
+        raise ValueError ('Temat jest wymagany')
+    values = {
+        "current_post": current_post,
+        "last_topic": last_topic,
+        "last_stage": last_stage,
+        "conversation_context": conversation_context,
+        "current_date": current_date
+    }
+    if task in TASKS:
+        required = TASKS[task]["required"]
+        for r in required:
+            val = values[r]
+            if val is None or isinstance(val, str) and not val.strip():
+                raise ValueError(f'brak {r} w danych do zadania {task}')
+        build = TASKS[task]["build"]
+        payload = {}
+        for b in build:
+            k = values[b]
+            if k is None or isinstance(k, str) and not k.strip():
+                continue           
+            payload[b] = k
+        prompt = load_prompt(task)
+        json_prompt_str = json.dumps(payload, ensure_ascii=False, indent=2) 
+        entire_prompt = (f'{prompt}\n{json_prompt_str}')
+        return entire_prompt
+    else:
+        raise ValueError (f'nie obsługiwane zadanie: {task}')
+
+
+def def_current_date(*, time_zone: str, date_format=None, hour_format=None) -> dict:
     try:
         now = datetime.datetime.now(ZoneInfo(time_zone))
     except:
@@ -93,23 +128,26 @@ def clear_date_list(dates: list[str]) ->list[str]:
     return clear_list
 
 
-async def ai_answer(text: str, task: str, current_date=None) -> dict:
+async def ai_answer(*, task: str, current_post: str, last_topic: str | None=None, last_stage: str | None=None, 
+conversation_context: str | None=None, current_date: str | None=None) -> dict:
+    current_day = None
+    if current_date:
+        if isinstance(current_date, dict):
+            current_day = current_date.get("current_day")
+        elif isinstance(current_date, str):
+            current_day = current_date.strip()
+        else:
+            raise TypeError(f"Nieprawidłowy format {current_date}")
     error = []
-    prompt = load_prompt(task)
+    prompt = prompt_generator(task=task, current_post=current_post, last_topic=last_topic, 
+    last_stage=last_stage, conversation_context=conversation_context, current_date=current_day)
     for provider in AI_PROVIDER_LIST:
         try:
             provider_name = provider["name"]
             provider_model = provider["model"]
             current_model = get_ai_provider(provider_name, provider_model)
             current_day = None
-            if current_date:
-                if isinstance(current_date, dict):
-                    current_day = current_date.get("current_day")
-                elif isinstance(current_date, str):
-                    current_day = current_date.strip()
-                else:
-                    raise TypeError(f"Nieprawidłowy format {current_date}")
-            ai_result = await current_model._call_api(prompt=prompt, text=text, current_date=current_day)
+            ai_result = await current_model._call_api(prompt=prompt)
             dates = None
             if ai_result is None:
                 error.append(f"Model {provider_model} nie zwrócił odpowiedzi")
@@ -142,3 +180,4 @@ async def ai_answer(text: str, task: str, current_date=None) -> dict:
         except Exception as e:
             error.append(f"Error calling API for {provider_name} {provider_model}: {e}")
     raise RuntimeError(f"Wszystkie modele zwróciły błąd: {error}")
+

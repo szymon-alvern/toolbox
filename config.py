@@ -4,6 +4,12 @@ CONFIG_LINK = {
         "ID_entry": "entry.1721827309",
         "token_entry": "entry.1814604231",
         "status_entry": "entry.838922726"
+        },
+    "book_appointments": {
+        "basic_link": "https://docs.google.com/forms/d/e/1FAIpQLSfz3gpJqff-s0gwRAYcdaUiaE2WZTjbQoiZ7RPI5hNWqBed5w/viewform",
+        "ID_entry": "entry.322681086",
+        "token_entry": "entry.82943063",
+        "status_entry": "entry.836695870"
         }
     }
 
@@ -16,8 +22,8 @@ AI_PROVIDER_LIST = [
 
 
 TASKS = {
-    "classyfi" : {"required": ["prompt","text"],
-            "build": ["prompt","text"]},
-    "date_extract": {"required": ["prompt","text", "Current_date"],
-            "build": ["prompt","text", "Current_date"],
+    "classyfi" : {"required": ["current_post", "last_topic", "last_stage"],
+            "build": ["current_post", "conversation_context", "last_topic", "last_stage"]},
+    "date_extract": {"required": ["current_post", "current_date"],
+            "build": ["current_post", "current_date", "conversation_context"],
     }}
