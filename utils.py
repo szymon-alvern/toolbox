@@ -21,8 +21,7 @@ class IdsData(BaseModel):
 class Post(BaseModel):
     task: str
     current_post: str
-    last_topic: str | None=None
-    last_stage: str | None=None
+    current_stage: str
     conversation_context: str | None=None
 
 
@@ -67,14 +66,13 @@ def load_prompt(task: str) -> str:
         raise ValueError (f'nie obsługiwane zadanie: {task}')
 
 
-def prompt_generator(*, task: str, current_post: str, last_topic: str | None=None, last_stage:str | None=None, 
+def prompt_generator(*, task: str, current_post: str, current_stage: str, 
 conversation_context: str | None=None, current_date: str | None=None) -> str:
     if task is None or isinstance(task, str) and not task.strip():
         raise ValueError ('Temat jest wymagany')
     values = {
         "current_post": current_post,
-        "last_topic": last_topic,
-        "last_stage": last_stage,
+        "current_stage": current_stage,
         "conversation_context": conversation_context,
         "current_date": current_date
     }
@@ -141,7 +139,7 @@ def clear_date_list(dates: list[str]) ->list[str]:
     return clear_list
 
 
-async def ai_answer(*, task: str, current_post: str, last_topic: str | None=None, last_stage: str | None=None, 
+async def ai_answer(*, task: str, current_post: str, current_stage: str | None=None, 
 conversation_context: str | None=None, current_date: str | None=None) -> dict:
     current_day = None
     if current_date:
@@ -152,8 +150,8 @@ conversation_context: str | None=None, current_date: str | None=None) -> dict:
         else:
             raise TypeError(f"Nieprawidłowy format {current_date}")
     error = []
-    prompt = prompt_generator(task=task, current_post=current_post, last_topic=last_topic, 
-    last_stage=last_stage, conversation_context=conversation_context, current_date=current_day)
+    prompt = prompt_generator(task=task, current_post=current_post, current_stage=current_stage, 
+    conversation_context=conversation_context, current_date=current_day)
     for provider in AI_PROVIDER_LIST:
         try:
             provider_name = provider["name"]
