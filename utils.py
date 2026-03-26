@@ -6,14 +6,17 @@ from zoneinfo import ZoneInfo
 import random
 import json
 import os
-from config import CONFIG_LINK, AI_PROVIDER_LIST, TASKS
+from config import CONFIG_LINK_GOOGLE_FORM, CONFIG_LINK_FILLOUT, AI_PROVIDER_LIST, TASKS
 from ai_provider import get_ai_provider
 
 
 class IdsData(BaseModel):
     task: str
     id: str
-
+    source: str | None=None
+    channel_account_id: str | None=None
+    caused_by_event_id: str | None=None
+    platform: str    
 
 class Post(BaseModel):
     task: str
@@ -23,20 +26,30 @@ class Post(BaseModel):
     conversation_context: str | None=None
 
 
-def generate_link(id: str, task: str) -> str:
-    config_data = CONFIG_LINK.get(task)
+def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None) -> str:
+    if platform == "google_form":
+        config_data = CONFIG_LINK_GOOGLE_FORM.get(task)
+    elif platform == "fillout":
+        config_data = CONFIG_LINK_FILLOUT.get(task)
+    else:
+        return(f'nie znaleziona platrorma {platform}')
     if config_data:
         basic_link = config_data["basic_link"]
-        ID_entry = config_data["ID_entry"]
-        token_entry = config_data["token_entry"]
-        status_entry = config_data["status_entry"]
+        ID = config_data["ID_param"]
+        token = config_data["token_param"]
+        status = config_data["status_param"]
         random_token = random.randint(100000, 999999)
         params = {
-            "usp": "pp_url",
-            ID_entry: id,
-            token_entry: random_token,
-            status_entry: "Do zapisania"
+            ID: id,
+            token: random_token,
+            status: "Do zapisania"
         }
+        if platform == "google_form":
+            params["ups"] = "pp_url"
+        if platform == "fillout":
+            params["source"] = source
+            params["channel_account_id"] = channel_account_id
+            params["caused_by_event_id"] = caused_by_event_id
         generated_link = f"{basic_link}?{urlencode(params)}"
         return generated_link
     else:
