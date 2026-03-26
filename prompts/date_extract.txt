@@ -15,7 +15,7 @@ Traktuj konwersację jako proces ciągły – jeśli użytkownik dopytuje o:
 odnoś się do ostatnio omawianych dat w kontekście.
 
 Każdą rozpoznaną datę zwróć jako obiekt zawierający:
-- "data" = data rozpoznana z wypowiedzi użytkownika
+- "date" = data rozpoznana z wypowiedzi użytkownika
 - "start" = początek tego dnia, czyli godzina 00:00
 - "end" = koniec tego dnia, czyli godzina 23:59
 
@@ -26,7 +26,7 @@ Zwróć WYŁĄCZNIE poprawny JSON w jednej z trzech postaci:
 {
   "dates_list": [
     {
-      "data": "dd-mm-rrrr",
+      "date": "dd-mm-rrrr",
       "start": "rrrr-mm-ddT00:00:00Z",
       "end": "rrrr-mm-ddT23:59:00Z"
     }
@@ -36,10 +36,10 @@ Zwróć WYŁĄCZNIE poprawny JSON w jednej z trzech postaci:
 Wymagania dla "dates_list":
 - to zawsze lista obiektów
 - każdy obiekt zawiera dokładnie pola:
-  - "data"
+  - "date"
   - "start"
   - "end"
-- "data" ma format "dd-mm-rrrr"
+- "date" ma format "dd-mm-rrrr"
 - "start" ma format "rrrr-mm-ddT00:00:00Z"
 - "end" ma format "rrrr-mm-ddT23:59:00Z"
 - wpisy są unikalne
@@ -74,7 +74,7 @@ Każda data lub termin dnia wspomniany w "current_post".
 Jeśli post zawiera kilka dat, musisz wyliczyć WSZYSTKIE.
 
 3) Format daty:
-W polu "data" zawsze używaj formatu:
+W polu "date" zawsze używaj formatu:
 - "dd-mm-rrrr"
 
 4) Format pól start i end:
@@ -85,7 +85,7 @@ Dla każdej rozpoznanej daty:
 Przykład:
 dla daty 27-03-2026 wynik ma być:
 {
-  "data": "27-03-2026",
+  "date": "27-03-2026",
   "start": "2026-03-27T00:00:00Z",
   "end": "2026-03-27T23:59:00Z"
 }
@@ -157,7 +157,7 @@ Odpowiedź:
 {
   "dates_list": [
     {
-      "data": "27-03-2026",
+      "date": "27-03-2026",
       "start": "2026-03-27T00:00:00Z",
       "end": "2026-03-27T23:59:00Z"
     }
@@ -175,12 +175,12 @@ Odpowiedź:
 {
   "dates_list": [
     {
-      "data": "27-03-2026",
+      "date": "27-03-2026",
       "start": "2026-03-27T00:00:00Z",
       "end": "2026-03-27T23:59:00Z"
     },
     {
-      "data": "28-03-2026",
+      "date": "28-03-2026",
       "start": "2026-03-28T00:00:00Z",
       "end": "2026-03-28T23:59:00Z"
     }
@@ -198,7 +198,7 @@ Odpowiedź:
 {
   "dates_list": [
     {
-      "data": "16-03-2026",
+      "date": "16-03-2026",
       "start": "2026-03-16T00:00:00Z",
       "end": "2026-03-16T23:59:00Z"
     }
@@ -216,12 +216,12 @@ Odpowiedź:
 {
   "dates_list": [
     {
-      "data": "14-03-2026",
+      "date": "14-03-2026",
       "start": "2026-03-14T00:00:00Z",
       "end": "2026-03-14T23:59:00Z"
     },
     {
-      "data": "15-03-2026",
+      "date": "15-03-2026",
       "start": "2026-03-15T00:00:00Z",
       "end": "2026-03-15T23:59:00Z"
     }
@@ -240,7 +240,7 @@ Otrzymasz JSON:
 Przed zwróceniem odpowiedzi sprawdź:
 - czy użyłeś przede wszystkim "current_post"
 - czy przy odniesieniach użyłeś "conversation_context"
-- czy każda rozpoznana data ma obiekt z polami "data", "start", "end"
+- czy każda rozpoznana data ma obiekt z polami "date", "start", "end"
 - czy "start" ma godzinę 00:00:00Z
 - czy "end" ma godzinę 23:59:00Z
 - czy wpisy są unikalne i posortowane
