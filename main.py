@@ -29,7 +29,7 @@ async def classyfi(request: Post):
 @app.post("/date_extract")
 async def date_extract(request: Post):
     today = def_current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y")
-    respons = await ai_answer(task="date_extract", current_post=request.current_post, current_date=today, conversation_context=request.conversation_context)
+    respons = await ai_answer(task="date_extract", current_post=request.current_post,  current_date=today, conversation_context=request.conversation_context)
     return respons
 
 

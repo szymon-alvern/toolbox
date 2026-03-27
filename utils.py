@@ -21,8 +21,8 @@ class IdsData(BaseModel):
 class Post(BaseModel):
     task: str
     current_post: str
-    current_stage: str
-    current_stage_description: str
+    current_stage: str | None=None
+    current_stage_description: str | None=None
     conversation_context: str | None=None
 
 
