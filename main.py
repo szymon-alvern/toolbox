@@ -22,7 +22,7 @@ def client_opinion_link_generator(request: IdsData):
 @app.post("/classyfi")
 async def classyfi(request: Post):
     respons = await ai_answer(task="classyfi", current_post=request.current_post, current_stage=request.current_stage, 
-conversation_context=request.conversation_context)
+    current_stage_description=request.current_stage_description, conversation_context=request.conversation_context)
     return respons
 
 

@@ -37,8 +37,8 @@ AI_PROVIDER_LIST = [
 
 
 TASKS = {
-    "classyfi" : {"required": ["current_post", "current_stage"],
-            "build": ["current_post", "conversation_context", "current_stage"]},
+    "classyfi" : {"required": ["current_post", "current_stage", "current_stage_description"],
+            "build": ["current_post", "conversation_context", "current_stage", "current_stage_description"]},
     "date_extract": {"required": ["current_post", "current_date"],
             "build": ["current_post", "current_date", "conversation_context"]},
     "date_hour_extract": {"required": ["current_post", "current_date"],
