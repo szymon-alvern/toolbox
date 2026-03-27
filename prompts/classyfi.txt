@@ -6,80 +6,73 @@ Na podstawie pól:
 - `current_stage_description`
 - `conversation_context`
 
-zwróć wyłącznie jeden poprawny JSON:
+zwróć wyłącznie jeden poprawny JSON z polami:
 - `stage`
 - `stage_description`
 
-Zasady ogólne:
+Zasady:
 1. `current_post` to aktualna wiadomość klienta.
-2. `conversation_context` jest opcjonalny i może być pusty. Jeśli jest dostępny, zawiera surowe wcześniejsze wiadomości klienta i automatyzacji.
-3. Najpierw oceń `current_post`, potem `conversation_context`, a na końcu użyj `current_stage` i `current_stage_description` tylko jako pomocniczej kontroli zgodności.
-4. Jeśli `conversation_context` jednoznacznie wyjaśnia, do czego odnosi się `current_post`, ma wyższy priorytet niż `current_stage`.
-5. Nie zgaduj. Jeśli istnieje więcej niż jedna sensowna interpretacja i kontekst nie pozwala wybrać jednej, zwróć `NEED_MORE_DETAILS`.
-6. Jeśli wiadomość nie pasuje do żadnego obsługiwanego etapu, zwróć `OTHER`.
-7. Nie twórz własnych stage ani własnych `stage_description`.
-8. Zwróć wyłącznie JSON, bez markdown, bez komentarzy i bez dodatkowego tekstu.
+2. `conversation_context` może być pusty. Jeśli jest dostępny, zawiera wcześniejsze wiadomości klienta i automatyzacji.
+3. Klasyfikuj w kolejności ważności:
+   - najpierw `current_post`
+   - potem `conversation_context`
+   - na końcu `current_stage` i `current_stage_description` jako sygnał pomocniczy
+4. Jeśli `conversation_context` jednoznacznie wyjaśnia sens `current_post`, ma wyższy priorytet niż `current_stage`.
+5. Jeśli wiadomość jest krótka, niejednoznaczna lub zależna od kontekstu, ustal, czego dotyczyła ostatnia wiadomość automatyzacji.
+6. Nie twórz własnych wartości `stage`.
+7. Zwróć wyłącznie JSON, bez markdown, bez komentarzy i bez dodatkowego tekstu.
 
-Dozwolone odpowiedzi:
+Dozwolone wartości `stage` i stałe `stage_description`:
+- `AVAILABILITY` → `Zapytanie o sprawdzenie terminu dostępności sali`
+- `CLIENT_APPOINTMENT` → `Klient potwierdził, że chce przejść do ustalenia terminu spotkania konsultacyjnego.`
+- `APPOINTMENT_DECLINED` → `Klient odmówił przejścia do umawiania spotkania konsultacyjnego.`
+- `OTHER` → `Temat niejasny, nowy lub niepasujący do powyższych kategorii.`
 
-{ "stage": "AVAILABILITY", "stage_description": "Zapytanie o sprawdzeni terminu dostępności sali" }
+Dla `NEED_MORE_DETAILS`:
+1. `stage` musi mieć wartość `NEED_MORE_DETAILS`.
+2. `stage_description` ma być jednym krótkim, konkretnym pytaniem do klienta, gotowym do bezpośredniego wysłania.
+3. Pytanie ma dotyczyć dokładnie tej informacji, której brakuje do jednoznacznej klasyfikacji.
+4. `stage_description` nie może być zawsze takie samo.
+5. Jeśli styl rozmowy da się odczytać z kontekstu, dopasuj ton pytania do rozmowy.
+6. Jeśli brak kontekstu stylu, użyj tonu przyjaznego i profesjonalnego.
 
-{ "stage": "CLIENT_APPOINTMENT", "stage_description": "Klient potwierdził, że chce przejść do ustalenia terminu spotkania konsultacyjnego." }
-
-{ "stage": "APPOINTMENT_DECLINED", "stage_description": "Klient odmówił przejścia do umawiania spotkania konsultacyjnego." }
-
-{ "stage": "NEED_MORE_DETAILS", "stage_description": "Czy chodzi o termin imprezy, czy o termin spotkania konsultacyjnego?" }
-
-{ "stage": "OTHER", "stage_description": "Temat niejasny, nowy lub niepasujący do powyższych kategorii." }
-
-Znaczenie stage:
-- `AVAILABILITY` — klient pyta o dostępność sali lub terminu imprezy albo podaje datę, dzień, miesiąc, zakres dat lub okres do sprawdzenia dostępności wydarzenia.
-- `CLIENT_APPOINTMENT` — klient jednoznacznie potwierdza, że chce przejść do ustalenia terminu spotkania konsultacyjnego, albo odpowiada na propozycję spotkania w sposób wskazujący na chęć jego umówienia.
-- `APPOINTMENT_DECLINED` — klient jednoznacznie odmawia przejścia do ustalenia terminu spotkania konsultacyjnego.
-- `NEED_MORE_DETAILS` — wiadomość jest zależna od kontekstu lub niejednoznaczna i nie da się pewnie ustalić, czy chodzi o termin imprezy czy o termin spotkania konsultacyjnego.
-- `OTHER` — wiadomość nie dotyczy żadnego z powyższych etapów.
+Znaczenie `stage`:
+- `AVAILABILITY` — klient pyta o dostępność sali, termin wydarzenia albo podaje datę, dzień, miesiąc, zakres dat lub okres do sprawdzenia dostępności imprezy.
+- `CLIENT_APPOINTMENT` — klient potwierdza chęć przejścia do ustalenia terminu spotkania konsultacyjnego albo odpowiada na propozycję spotkania w sposób wskazujący na chęć jego umówienia.
+- `APPOINTMENT_DECLINED` — klient odmawia przejścia do ustalenia terminu spotkania konsultacyjnego.
+- `NEED_MORE_DETAILS` — wiadomość jest niejednoznaczna, skrótowa albo brakuje danych do pewnej klasyfikacji.
+- `OTHER` — wiadomość nie dotyczy żadnej z powyższych kategorii.
 
 Reguły klasyfikacji:
-1. Jeśli klient pyta o wolny termin sali, dostępność daty, podaje datę imprezy albo prosi o sprawdzenie terminu wydarzenia, zwróć `AVAILABILITY`.
-2. Jeśli po wcześniejszym sprawdzeniu terminu klient jednoznacznie pyta o inną datę imprezy lub o dostępność kolejnego terminu wydarzenia, zwróć `AVAILABILITY`.
-3. Jeśli automatyzacja wcześniej zaprosiła klienta do umówienia spotkania konsultacyjnego, a klient odpowiada akceptacją typu:
-   - „tak”
-   - „jasne”
-   - „ok”
-   - „dobrze”
-   - „super”
-   - „możemy”
-   to zwróć `CLIENT_APPOINTMENT`, o ile z kontekstu jasno wynika, że trwa etap proponowania spotkania konsultacyjnego.
-4. Jeśli automatyzacja wcześniej zaprosiła klienta do umówienia spotkania konsultacyjnego, a klient odpowiada akceptacją i jednocześnie podaje propozycję dnia, daty, pory lub wstępnego terminu, np.:
-   - „tak, może jutro?”
-   - „jasne, w piątek”
-   - „ok, po 16”
-   - „możemy jutro”
-   - „tak, przyszły tydzień”
-   to zwróć `CLIENT_APPOINTMENT`.
-5. W regułach 3 i 4 nie wymagaj, aby klient użył słowa „spotkanie”, jeśli z `conversation_context` jasno wynika, że odpowiada właśnie na propozycję umówienia spotkania konsultacyjnego.
-6. Jeśli klient jednoznacznie odmawia spotkania konsultacyjnego, np.:
-   - „nie”
-   - „nie chcę spotkania”
-   - „na razie nie”
-   - „to bez spotkania”
-   - „nie jestem zainteresowany spotkaniem”
-   zwróć `APPOINTMENT_DECLINED`.
-7. Jeśli klient podaje tylko datę, dzień, zakres albo porę i z kontekstu nie wynika jednoznacznie, czy chodzi o termin imprezy czy o termin spotkania konsultacyjnego, zwróć `NEED_MORE_DETAILS`.
-8. Jeśli klient podaje tylko datę, dzień, zakres albo porę, ale bezpośrednio odpowiada na wcześniejsze pytanie automatyzacji o umówienie spotkania konsultacyjnego, zwróć `CLIENT_APPOINTMENT`.
-9. Jeśli klient podaje tylko datę, dzień lub okres bez kontekstu umawiania spotkania, traktuj to jako `AVAILABILITY`, ponieważ najczęściej oznacza prośbę o sprawdzenie terminu imprezy.
-10. Jeśli `current_post` jest krótkie i zależne od kontekstu, zawsze sprawdź, jaka była bezpośrednio poprzednia intencja automatyzacji w `conversation_context`.
-11. Jeśli ostatnia wiadomość automatyzacji dotyczyła wyraźnie umówienia spotkania konsultacyjnego, odpowiedź klienta należy domyślnie interpretować jako odnoszącą się do spotkania konsultacyjnego, chyba że klient wyraźnie wraca do sprawdzania terminu imprezy.
-12. Za wyraźny powrót do sprawdzania terminu imprezy uznaj wiadomości typu:
-   - „a macie 18.07?”
-   - „a w sobotę sala wolna?”
-   - „to sprawdź jeszcze 12 maja”
-   - „a inny termin imprezy?”
-   W takich przypadkach zwróć `AVAILABILITY`.
-13. Jeśli z `conversation_context` i `current_post` wynika wprost, że klient chce przejść do umawiania spotkania, ale nie podał jeszcze pełnych szczegółów terminu, nadal zwróć `CLIENT_APPOINTMENT`.
-14. `CLIENT_APPOINTMENT` oznacza wejście w etap umawiania spotkania konsultacyjnego, a nie potwierdzenie, że termin spotkania został już kompletnie i poprawnie ustalony.
-15. Nie opieraj klasyfikacji wyłącznie na `current_stage`, jeśli treść rozmowy wskazuje co innego.
-16. Jeśli wiadomość jest nowym tematem, niezwiązanym ani ze sprawdzeniem dostępności, ani z umawianiem spotkania konsultacyjnego, zwróć `OTHER`.
+1. Zwróć `AVAILABILITY`, jeśli klient:
+   - pyta o wolny termin sali lub wydarzenia,
+   - prosi o sprawdzenie daty,
+   - podaje datę, dzień, miesiąc, zakres dat lub okres w celu sprawdzenia dostępności imprezy.
+2. Zwróć `CLIENT_APPOINTMENT`, jeśli klient jednoznacznie akceptuje propozycję spotkania konsultacyjnego.
+3. Zwróć `CLIENT_APPOINTMENT`, jeśli klient odpowiada krótko, np. „tak”, „jasne”, „ok”, „dobrze”, „super”, „możemy”, i z `conversation_context` albo `current_stage` wynika, że automatyzacja właśnie zaproponowała spotkanie konsultacyjne.
+4. Zwróć `CLIENT_APPOINTMENT`, jeśli klient odpowiada na propozycję spotkania i podaje dzień, datę, porę lub przybliżony termin, np. „tak, może jutro?”, „w piątek”, „po 16”, „jutro”, „przyszły tydzień”.
+5. Jeśli ostatnia wiadomość automatyzacji dotyczyła umówienia spotkania konsultacyjnego, krótką odpowiedź klienta interpretuj domyślnie jako odpowiedź dotyczącą spotkania, chyba że klient wyraźnie odmawia, wraca do sprawdzania terminu wydarzenia albo zmienia temat.
+6. Zwróć `APPOINTMENT_DECLINED`, jeśli klient jednoznacznie odmawia spotkania, np. „nie”, „nie chcę spotkania”, „na razie nie”, „to bez spotkania”.
+7. Jeśli klient podaje tylko datę, dzień, zakres lub porę bez kontekstu umawiania spotkania, traktuj to jako `AVAILABILITY`.
+8. Jeśli klient podaje tylko datę, dzień, zakres lub porę, ale wiadomość jest bezpośrednią odpowiedzią na propozycję spotkania konsultacyjnego, zwróć `CLIENT_APPOINTMENT`.
+9. Jeśli klient wyraźnie wraca do sprawdzania terminu wydarzenia, np. „a macie 18.07?”, „a w sobotę sala wolna?”, „to sprawdź jeszcze 12 maja”, „a inny termin imprezy?”, zwróć `AVAILABILITY`.
+10. Zwróć `NEED_MORE_DETAILS` wyłącznie w ostateczności — tylko wtedy, gdy po analizie `current_post`, `conversation_context` i `current_stage` nadal istnieje więcej niż jedna sensowna interpretacja i nie da się wskazać jednej wyraźnie najbardziej prawdopodobnej klasyfikacji.
+11. Jeśli wybierasz `NEED_MORE_DETAILS`, zadaj tylko jedno krótkie pytanie, które pozwoli rozstrzygnąć najważniejszą niejednoznaczność.
+12. Zwróć `OTHER`, jeśli wiadomość dotyczy nowego tematu, niezwiązanego z dostępnością terminu ani z umawianiem spotkania konsultacyjnego.
+
+
+Przykład:
+Input:
+current_post: "tak może jutro?"
+current_stage: "EVENT_DATE_FREE"
+current_stage_description: "Klient otrzymał informację, że wskazany termin wydarzenia jest dostępny i zaproponowano mu spotkanie konsultacyjne."
+conversation_context: "
+automatyzacja: Mamy dobrą wiadomość — wskazany termin jest dostępny. Przed formalną rezerwacją zapraszam na spotkanie konsultacyjne, aby omówić szczegóły. Czy możemy umówić takie spotkanie?
+klient: tak może jutro?
+"
+
+Output:
+{ "stage": "CLIENT_APPOINTMENT", "stage_description": "Klient potwierdził, że chce przejść do ustalenia terminu spotkania konsultacyjnego." }
 
 Dane wejściowe:
 
@@ -87,16 +80,3 @@ current_post: "{current_post}"
 current_stage: "{current_stage}"
 current_stage_description: "{current_stage_description}"
 conversation_context: "{conversation_context}"
-
-Przykład:
-Input:
-current_post: "tak może jutro?"
-current_stage: "EVENT_DATE_FREE"
-current_stage_description: "Klient otrzymał informację, że wskazany termin imprezy jest dostępny i zaproponowano mu spotkanie konsultacyjne."
-conversation_context: "
-automatyzacja: Mamy dla Ciebie dobrą wiadomość! Terminy 11.04.2026 i 12.04.2026 są dostępne. Przed formalną rezerwacją zapraszam na spotkanie, aby omówić szczegóły wydarzenia i lepiej dopasować nasze usługi do Twoich potrzeb. Czy możemy umówić się na takie spotkanie?
-klient: tak może jutro?
-"
-
-Output:
-{ "stage": "CLIENT_APPOINTMENT", "stage_description": "Klient potwierdził, że chce przejść do ustalenia terminu spotkania konsultacyjnego." }
