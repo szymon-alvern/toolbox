@@ -19,7 +19,7 @@ class IdsData(BaseModel):
     platform: str    
 
 class Post(BaseModel):
-    task: str
+    # task: str
     current_post: str
     current_stage: str | None=None
     current_stage_description: str | None=None
