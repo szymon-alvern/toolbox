@@ -244,12 +244,12 @@ async def checking_data(phone_number: str | None=None) -> str:
             b = row_phone_number[2:5]
             c = row_phone_number[5:8]
             d = row_phone_number[8:11]
-            return {"result":"OK",
+            return {"checking":"OK",
                     "phone": f'+{a} {b} {c} {d}'}
         else:
-            return {"result":"BAD_NUMBER",
+            return {"checking":"BAD_NUMBER",
                     "phone": row_phone_number}
-    return {"result": "NEED_DATA_TO_CHECK",
+    return {"checking": "NEED_DATA_TO_CHECK",
             "phone": ""}
                 
 
