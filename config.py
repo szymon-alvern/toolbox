@@ -20,9 +20,15 @@ CONFIG_LINK_FILLOUT = {
         "basic_link": "https://forms.fillout.com/t/w39gRpc5Dzus",
         "ID_param": "case_id",
         "token_param": "token",
-        # "source_param": "source",
-        # "channel_account_id_param": "channel_account_id",
-        "status_param": "status"
+        "phone_number_param": "phone_number",
+        "meeting_date_param": "meeting_date",
+        "meeting_hour_param": "meeting_hour",
+        "source_param": "source",
+        "channel_account_id_param": "channel_account_id",
+        "caused_by_event_id_param": "caused_by_event_id",
+        "status_param": "status",
+        "name_param": "name",
+        "last_name_param": "last_name"
         }
     }
 

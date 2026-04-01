@@ -14,8 +14,9 @@ def hello():
 
 @app.post("/client_opinion/link_generator")
 def client_opinion_link_generator(request: IdsData):
-    generated_link = generate_link(task=request.task, id=request.id, platform=request.platform, source=request.source, 
-    channel_account_id=request.channel_account_id, caused_by_event_id=request.caused_by_event_id)
+    generated_link = generate_link(task="book_appointments", id=request.id, platform=request.platform, source=request.source, 
+    channel_account_id=request.channel_account_id, caused_by_event_id=request.caused_by_event_id, phone_number=request.phone_number, 
+    meeting_time=request.meeting_time, name=request.name, last_name=request.last_name)
     return {"link": generated_link}
 
 

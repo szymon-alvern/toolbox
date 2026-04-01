@@ -11,12 +11,15 @@ from ai_provider import get_ai_provider
 
 
 class IdsData(BaseModel):
-    task: str
     id: str
     source: str | None=None
     channel_account_id: str | None=None
     caused_by_event_id: str | None=None
-    platform: str    
+    platform: str
+    phone_number: str | None=None
+    meeting_time: str | None=None
+    name: str | None=None  
+    last_name: str | None=None  
 
 class Post(BaseModel):
     # task: str
@@ -26,7 +29,8 @@ class Post(BaseModel):
     conversation_context: str | None=None
 
 
-def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None) -> str:
+def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None,
+phone_number: str | None=None, meeting_time: str | None=None, name: str | None=None, last_name: str | None=None)     -> str:
     if platform == "google_form":
         config_data = CONFIG_LINK_GOOGLE_FORM.get(task)
     elif platform == "fillout":
@@ -47,10 +51,35 @@ def generate_link(id: str, task: str, platform: str, source: str | None=None, ch
         if platform == "google_form":
             params["ups"] = "pp_url"
         if platform == "fillout":
+            date = ""
+            hour = ""
+            if meeting_time:
+                meeting_date_utc = datetime.datetime.strptime(meeting_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                date = meeting_date_utc.strftime("%d.%m.%Y")
+                hour = meeting_date_utc.strftime("%H:%M")
+            phone_number_link = ""
+            if phone_number:
+                row_phone_number = []
+                for f in phone_number:
+                    if f.isdigit():
+                        row_phone_number.append(f)
+                row_phone_number = "".join(row_phone_number)
+                if len(row_phone_number) == 9:
+                    row_phone_number = f"48{row_phone_number}"
+                if len(row_phone_number) == 11:
+                    a = row_phone_number[2:5]
+                    b = row_phone_number[5:8]
+                    c = row_phone_number[8:11]
+                    d = row_phone_number[0:2]
+                phone_number_link = f"%2B{d}%20{a}%20{b}%20{c}"
             params["source"] = source
             params["channel_account_id"] = channel_account_id
             params["caused_by_event_id"] = caused_by_event_id
-        generated_link = f"{basic_link}?{urlencode(params)}"
+            params["name"] = name
+            params["last_name"] = last_name
+            params["meeting_date"] = date
+            params["meeting_hour"] = hour
+        generated_link = f"{basic_link}?{urlencode(params)}&phone_number={phone_number_link}"
         return generated_link
     else:
         return f"Brak generowania linków dla zadania {task}"
