@@ -29,6 +29,10 @@ class Post(BaseModel):
     conversation_context: str | None=None
 
 
+class Checking(BaseModel):
+    phone_number: str | None=None
+
+
 def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None,
 phone_number: str | None=None, meeting_time: str | None=None, name: str | None=None, last_name: str | None=None)     -> str:
     if platform == "google_form":
@@ -224,4 +228,18 @@ conversation_context: str | None=None, current_date: str | None=None) -> dict:
         except Exception as e:
             error.append(f"Error calling API for {provider_name} {provider_model}: {e}")
     raise RuntimeError(f"Wszystkie modele zwróciły błąd: {error}")
+
+
+async def checking_data(phone_number: str | None=None) -> str:
+    if phone_number:
+        counter = 0
+        for i in phone_number:
+            if i.isdigit():
+                counter = counter + 1
+        if counter == 9 or counter == 11:
+            return ("OK")
+        else:
+            return ("BAD_NUMBER")
+    return ("NEED_DATA_TO_CHECK")
+                
 

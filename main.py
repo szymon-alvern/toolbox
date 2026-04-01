@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from utils import IdsData, generate_link, Post, ai_answer, def_current_date
+from utils import IdsData, generate_link, Post, ai_answer, def_current_date, Checking, checking_data
 
 app = FastAPI()
 
@@ -49,8 +49,15 @@ async def date_hour_extract(request: Post):
 
 @app.post("/today")
 async def today():
-    now = current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y", hour_format="%H:%M:%")
+    now = def_current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y", hour_format="%H:%M:%")
     return now
+
+
+@app.post("/check")
+async def check(request: Checking):
+    result = await checking_data(phone_number=request.phone_number)
+    return result
+
 
 
 
