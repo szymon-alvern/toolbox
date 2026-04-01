@@ -232,14 +232,24 @@ conversation_context: str | None=None, current_date: str | None=None) -> dict:
 
 async def checking_data(phone_number: str | None=None) -> str:
     if phone_number:
-        counter = 0
+        row_phone_number = []
         for i in phone_number:
             if i.isdigit():
-                counter = counter + 1
-        if counter == 9 or counter == 11:
-            return ("OK")
+                row_phone_number.append(i)
+        row_phone_number = "".join(row_phone_number)        
+        if len(row_phone_number) == 9:
+            row_phone_number = f'48{row_phone_number}'
+        if len(row_phone_number) == 11:
+            a = row_phone_number[0:2]
+            b = row_phone_number[2:5]
+            c = row_phone_number[5:8]
+            d = row_phone_number[8:11]
+            return {"result":"OK",
+                    "phone": f'+{a} {b} {c} {d}'}
         else:
-            return ("BAD_NUMBER")
-    return ("NEED_DATA_TO_CHECK")
+            return {"result":"BAD_NUMBER",
+                    "phone": row_phone_number}
+    return {"result": "NEED_DATA_TO_CHECK",
+            "phone": ""}
                 
 
