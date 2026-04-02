@@ -18,7 +18,7 @@ Określ aktualny temat wypowiedzi klienta.
 
 Priorytet interpretacji:
 1. `current_post`
-2. `conversation_context`
+2. najbliższy pasujący kontekst z `conversation_context`, analizowany od końca rozmowy, ze szczególnym uwzględnieniem ostatniego pytania, prośby lub propozycji, na które klient najprawdopodobniej odpowiada
 3. `current_stage`
 4. `current_stage_description`
 
@@ -40,17 +40,21 @@ Zasady ogólne:
 2. Nie przewiduj kolejnego kroku rozmowy.
 3. Nie twórz nowych wartości `current_stage`.
 4. `current_stage_description` musi być dokładnie zgodne z opisem przypisanym do wybranego `current_stage`.
-5. Jeśli wiadomość klienta jest krótka, potwierdzająca lub zależna od kontekstu, użyj `conversation_context` do interpretacji.
-6. Jeśli `conversation_context` zawiera więcej niż jedną propozycję, więcej niż jedno pytanie lub więcej niż jeden możliwy kierunek rozmowy, a `current_post` nie wskazuje jednoznacznie, którego dotyczy odpowiedź, wybierz `NEED_MORE_DETAILS`.
-7. Nie zgaduj. W razie niejednoznaczności wybierz `NEED_MORE_DETAILS`, jeżeli jedno krótkie pytanie może rozstrzygnąć temat.
-8. Wybierz `UNKNOWN` tylko wtedy, gdy nie da się sensownie ustalić kategorii i nie da się zadać jednego krótkiego pytania rozstrzygającego.
+5. Najpierw interpretuj `current_post` samodzielnie.
+6. Jeśli `current_post` jest krótkie, potwierdzające, niepełne, składa się głównie z cyfr, zawiera znak `@`, wygląda jak fragment danych kontaktowych lub jego znaczenie zależy od kontekstu, użyj `conversation_context` wyłącznie do ustalenia, do czego odnosi się ta wiadomość.
+7. Analizując `conversation_context`, zaczynaj od końca rozmowy i cofaj się krok po kroku, aż znajdziesz najbliższe pytanie, prośbę, propozycję lub komunikat, na które `current_post` najprawdopodobniej odpowiada.
+8. Nie klasyfikuj na podstawie ogólnego tematu całej rozmowy, jeśli najbliższy lokalny kontekst wskazuje inny, bardziej bezpośredni temat aktualnej wiadomości klienta.
+9. Jeśli `conversation_context` zawiera więcej niż jedną propozycję, więcej niż jedno pytanie lub więcej niż jeden możliwy kierunek rozmowy, a `current_post` i najbliższy lokalny kontekst nie wskazują jednoznacznie, którego dotyczy odpowiedź, wybierz `NEED_MORE_DETAILS`.
+10. Nie zgaduj. W razie niejednoznaczności wybierz `NEED_MORE_DETAILS`, jeżeli jedno krótkie pytanie może rozstrzygnąć temat.
+11. Wybierz `UNKNOWN` tylko wtedy, gdy nie da się sensownie ustalić kategorii i nie da się zadać jednego krótkiego pytania rozstrzygającego.
+12. Jeśli `current_post` samo w sobie wygląda jak dane kontaktowe lub próbę ich przekazania, nie wybieraj `NEED_MORE_DETAILS` tylko dlatego, że dane mogą być niepełne. W takim przypadku wybierz `CONTACT`, o ile najbliższy kontekst nie wskazuje jednoznacznie innego tematu.
 
 Znaczenie kategorii:
 - `AVAILABILITY` — pytanie o wolny termin, dostępność sali, możliwość rezerwacji lub wskazanie daty / zakresu dat do sprawdzenia.
 - `PRICING` — pytanie o cenę, koszt, wycenę, pakiet lub opłaty.
 - `LOCATION` — pytanie o adres, lokalizację, dojazd lub parking.
 - `OFFER` — pytanie o ofertę, wyposażenie, pojemność, organizację lub szczegóły wydarzenia.
-- `CONTACT` — prośba o numer telefonu, e-mail lub kontakt.
+- `CONTACT` — prośba o numer telefonu, e-mail lub kontakt, a także przekazywanie lub próba przekazania danych kontaktowych.
 - `CLIENT_APPOINTMENT` — chęć umówienia spotkania, wizyty, obejrzenia sali, przyjazdu na miejsce, odpowiedź na jednoznaczną propozycję spotkania albo odmowa spotkania.
 - `COMPLAINT` — zgłoszenie problemu lub reklamacji.
 - `FEEDBACK` — opinia, podziękowanie lub ocena.
@@ -81,19 +85,22 @@ Reguły klasyfikacji:
 3. Wybierz `LOCATION`, gdy klient pyta o adres, dojazd, lokalizację lub parking.
 4. Wybierz `OFFER`, gdy klient pyta o ofertę, wyposażenie, pojemność lub szczegóły organizacyjne.
 5. Wybierz `CONTACT`, gdy klient prosi o dane kontaktowe lub kontakt.
-6. Wybierz `CLIENT_APPOINTMENT`, gdy klient:
+6. Wybierz `CONTACT`, gdy `current_post` zawiera numer telefonu, fragment numeru telefonu, adres e-mail, fragment adresu e-mail, znak `@`, ciąg cyfr wyglądający jak próba podania numeru albo w inny sposób wygląda jak próba przekazania danych kontaktowych — szczególnie jeśli w najbliższym kontekście wystąpiła prośba o numer telefonu, e-mail lub inne dane kontaktowe.
+7. Jeśli `current_post` zawiera wyłącznie dane kontaktowe lub próbę ich podania, wybierz `CONTACT` nawet wtedy, gdy szerszy kontekst rozmowy dotyczy umawiania spotkania.
+8. Wybierz `CLIENT_APPOINTMENT`, gdy klient:
    - chce umówić spotkanie,
    - chce przyjechać,
    - chce obejrzeć salę,
    - podaje termin spotkania,
    - odpowiada na jednoznaczną propozycję spotkania,
    - odmawia spotkania.
-7. Nie wybieraj `CLIENT_APPOINTMENT`, jeśli spotkanie jest tylko warunkowe, poboczne lub jest jedną z kilku propozycji w kontekście.
-8. Jeśli wiadomość dotyczy jednocześnie dostępności i ewentualnego późniejszego spotkania, wybierz temat dominujący w `current_post`.
-9. Krótkie odpowiedzi typu: `tak`, `tak poproszę`, `ok`, `dobrze`, `jasne`, `poproszę`, `super` klasyfikuj na podstawie `conversation_context` tylko wtedy, gdy kontekst jest jednoznaczny.
-10. Jeśli krótka odpowiedź odnosi się do kontekstu, w którym występują co najmniej dwa możliwe znaczenia, wybierz `NEED_MORE_DETAILS`.
-11. Nie wybieraj `CLIENT_APPOINTMENT` po krótkiej odpowiedzi twierdzącej, jeśli w kontekście poza spotkaniem występuje też np. dostępność, cena, oferta, pakiet lub inna propozycja.
-12. Jeśli klient odmawia innego terminu, wybierz `AVAILABILITY` i ustaw `comments` na `NO_OTHER_DATE`.
+9. Nie wybieraj `CLIENT_APPOINTMENT`, jeśli spotkanie jest tylko warunkowe, poboczne lub jest jedną z kilku propozycji w kontekście.
+10. Nie wybieraj `CLIENT_APPOINTMENT`, jeśli aktualna wiadomość klienta zawiera wyłącznie dane kontaktowe lub próbę ich podania.
+11. Jeśli wiadomość dotyczy jednocześnie dostępności i ewentualnego późniejszego spotkania, wybierz temat dominujący w `current_post`.
+12. Krótkie odpowiedzi typu: `tak`, `tak poproszę`, `ok`, `dobrze`, `jasne`, `poproszę`, `super` klasyfikuj na podstawie najbliższego lokalnego kontekstu tylko wtedy, gdy ten kontekst jest jednoznaczny.
+13. Jeśli krótka odpowiedź odnosi się do kontekstu, w którym występują co najmniej dwa możliwe znaczenia, wybierz `NEED_MORE_DETAILS`.
+14. Nie wybieraj `CLIENT_APPOINTMENT` po krótkiej odpowiedzi twierdzącej, jeśli w najbliższym kontekście poza spotkaniem występuje też np. dostępność, cena, oferta, pakiet, prośba o kontakt lub inna propozycja.
+15. Jeśli klient odmawia innego terminu, wybierz `AVAILABILITY` i ustaw `comments` na `NO_OTHER_DATE`.
 
 Przykłady:
 1.
@@ -131,6 +138,24 @@ current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
 conversation_context: "automatyzacja: Jeśli chcesz, możemy umówić spotkanie na miejscu."
 Output:
 { "current_stage": "CLIENT_APPOINTMENT", "current_stage_description": "Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.", "comments": "WANT_TO_MEET" }
+
+5.
+Input:
+current_post: "34567"
+current_stage: "AVAILABILITY"
+current_stage_description: "Rozmowa dotyczy sprawdzenia dostępności terminu, sali lub możliwości rezerwacji."
+conversation_context: "[01.04 15:45] System: Możemy spotkać się w dniu 02.04.2026 o godzinie 18:00. Proszę o przesłanie numeru telefonu w celu potwierdzenia terminu."
+Output:
+{ "current_stage": "CONTACT", "current_stage_description": "Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.", "comments": "" }
+
+6.
+Input:
+current_post: "jan@"
+current_stage: "CLIENT_APPOINTMENT"
+current_stage_description: "Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy."
+conversation_context: "[01.04 15:45] System: Proszę o podanie adresu e-mail do potwierdzenia."
+Output:
+{ "current_stage": "CONTACT", "current_stage_description": "Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.", "comments": "" }
 
 Dane wejściowe:
 
