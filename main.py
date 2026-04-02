@@ -55,7 +55,7 @@ async def today():
 
 @app.post("/check")
 async def check(request: Checking):
-    result = await checking_data(phone_number=request.phone_number)
+    result = await checking_data(phone_number=request.phone_number, name=request.name, last_name=request.last_name)
     return result
 
 

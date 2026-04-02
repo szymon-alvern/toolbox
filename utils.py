@@ -31,6 +31,8 @@ class Post(BaseModel):
 
 class Checking(BaseModel):
     phone_number: str | None=None
+    name: str | None=None
+    last_name: str | None=None
 
 
 def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None,
@@ -79,8 +81,8 @@ phone_number: str | None=None, meeting_time: str | None=None, name: str | None=N
             params["source"] = source
             params["channel_account_id"] = channel_account_id
             params["caused_by_event_id"] = caused_by_event_id
-            params["name"] = name
-            params["last_name"] = last_name
+            params["name"] = name.capitalize()
+            params["last_name"] = last_name.capitalize()
             params["meeting_date"] = date
             params["meeting_hour"] = hour
         generated_link = f"{basic_link}?{urlencode(params)}&phone_number={phone_number_link}"
@@ -230,7 +232,11 @@ conversation_context: str | None=None, current_date: str | None=None) -> dict:
     raise RuntimeError(f"Wszystkie modele zwróciły błąd: {error}")
 
 
-async def checking_data(phone_number: str | None=None) -> str:
+async def checking_data(phone_number: str | None=None, name: str | None=None, last_name: str | None=None) -> str: 
+    a = ""
+    b = ""
+    c = ""
+    d = "" 
     if phone_number:
         row_phone_number = []
         for i in phone_number:
@@ -243,13 +249,23 @@ async def checking_data(phone_number: str | None=None) -> str:
             a = row_phone_number[0:2]
             b = row_phone_number[2:5]
             c = row_phone_number[5:8]
-            d = row_phone_number[8:11]
-            return {"checking":"OK",
-                    "phone": f'+{a} {b} {c} {d}'}
+            d = row_phone_number[8:11]   
+            phone_number = f'+{a} {b} {c} {d}' 
+            status = "OK"        
         else:
-            return {"checking":"BAD_NUMBER",
-                    "phone": row_phone_number}
-    return {"checking": "NEED_DATA_TO_CHECK",
-            "phone": ""}
+            status = "BAD_NUMBER"  
+    if name:
+        name = name.capitalize()
+    if last_name:
+        last_name = last_name.capitalize()
+    else:
+        return {"checking": "NEED_DATA_TO_CHECK",
+                "phone": "",
+                "name": "",
+                "last_name": ""}
+    return{"checking": status,
+        "phone": phone_number,
+        "name": name,
+        "last_name": last_name}
                 
 
