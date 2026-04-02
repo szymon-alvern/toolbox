@@ -31,6 +31,7 @@ Dozwolone wartości `current_stage` i odpowiadające im opisy:
 - `CLIENT_APPOINTMENT` → `Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.`
 - `COMPLAINT` → `Rozmowa dotyczy reklamacji, problemu lub zgłoszenia nieprawidłowości.`
 - `FEEDBACK` → `Rozmowa dotyczy opinii, podziękowania lub oceny usługi.`
+- `GREETING` → `Rozmowa dotyczy przywitania, rozpoczęcia kontaktu lub krótkiego small talku otwierającego rozmowę.`
 - `NEED_MORE_DETAILS` → `Wymagana jest dodatkowa informacja do jednoznacznego określenia tematu rozmowy.`
 - `UNKNOWN` → `Nie rozpoznany jeszcze temat rozmowy.`
 - `OTHER` → `Temat rozmowy nie pasuje do żadnej z głównych kategorii.`
@@ -48,6 +49,7 @@ Zasady ogólne:
 10. Nie zgaduj. W razie niejednoznaczności wybierz `NEED_MORE_DETAILS`, jeżeli jedno krótkie pytanie może rozstrzygnąć temat.
 11. Wybierz `UNKNOWN` tylko wtedy, gdy nie da się sensownie ustalić kategorii i nie da się zadać jednego krótkiego pytania rozstrzygającego.
 12. Jeśli `current_post` samo w sobie wygląda jak dane kontaktowe lub próbę ich przekazania, nie wybieraj `NEED_MORE_DETAILS` tylko dlatego, że dane mogą być niepełne. W takim przypadku wybierz `CONTACT`, o ile najbliższy kontekst nie wskazuje jednoznacznie innego tematu.
+13. Jeśli `current_post` jest samodzielnym przywitaniem, rozpoczęciem rozmowy lub krótkim small talkiem otwierającym kontakt, wybierz `GREETING`.
 
 Znaczenie kategorii:
 - `AVAILABILITY` — pytanie o wolny termin, dostępność sali, możliwość rezerwacji lub wskazanie daty / zakresu dat do sprawdzenia.
@@ -58,6 +60,7 @@ Znaczenie kategorii:
 - `CLIENT_APPOINTMENT` — chęć umówienia spotkania, wizyty, obejrzenia sali, przyjazdu na miejsce, odpowiedź na jednoznaczną propozycję spotkania albo odmowa spotkania.
 - `COMPLAINT` — zgłoszenie problemu lub reklamacji.
 - `FEEDBACK` — opinia, podziękowanie lub ocena.
+- `GREETING` — przywitanie, rozpoczęcie rozmowy, zwroty typu `dzień dobry`, `cześć`, `hej`, `witam`, `halo` oraz krótki small talk otwierający kontakt, jeśli nie wskazuje jeszcze konkretnego tematu głównego.
 - `NEED_MORE_DETAILS` — brakuje jednej konkretnej informacji i jedno krótkie pytanie pozwoli jednoznacznie ustalić kategorię.
 - `UNKNOWN` — nie da się ustalić kategorii i nie da się ułożyć jednego rozstrzygającego pytania.
 - `OTHER` — inny rozpoznany temat.
@@ -101,6 +104,9 @@ Reguły klasyfikacji:
 13. Jeśli krótka odpowiedź odnosi się do kontekstu, w którym występują co najmniej dwa możliwe znaczenia, wybierz `NEED_MORE_DETAILS`.
 14. Nie wybieraj `CLIENT_APPOINTMENT` po krótkiej odpowiedzi twierdzącej, jeśli w najbliższym kontekście poza spotkaniem występuje też np. dostępność, cena, oferta, pakiet, prośba o kontakt lub inna propozycja.
 15. Jeśli klient odmawia innego terminu, wybierz `AVAILABILITY` i ustaw `comments` na `NO_OTHER_DATE`.
+16. Wybierz `GREETING`, gdy wiadomość klienta jest przede wszystkim przywitaniem lub rozpoczęciem rozmowy i nie zawiera jeszcze konkretnego pytania o cenę, termin, ofertę, lokalizację, kontakt ani spotkanie.
+17. Jeśli wiadomość zawiera przywitanie oraz jednocześnie konkretny temat główny, nie wybieraj `GREETING`; wybierz temat główny wiadomości.
+18. Przykłady wiadomości pasujących do `GREETING`: `dzień dobry`, `cześć`, `hej`, `witam`, `halo`, `dobry wieczór`, `miłego dnia`.
 
 Przykłady:
 1.
@@ -156,6 +162,24 @@ current_stage_description: "Rozmowa dotyczy umawiania spotkania z klientem w cel
 conversation_context: "[01.04 15:45] System: Proszę o podanie adresu e-mail do potwierdzenia."
 Output:
 { "current_stage": "CONTACT", "current_stage_description": "Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.", "comments": "" }
+
+7.
+Input:
+current_post: "dzień dobry"
+current_stage: "UNKNOWN"
+current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
+conversation_context: ""
+Output:
+{ "current_stage": "GREETING", "current_stage_description": "Rozmowa dotyczy przywitania, rozpoczęcia kontaktu lub krótkiego small talku otwierającego rozmowę.", "comments": "" }
+
+8.
+Input:
+current_post: "dzień dobry, jaki jest koszt wynajmu?"
+current_stage: "UNKNOWN"
+current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
+conversation_context: ""
+Output:
+{ "current_stage": "PRICING", "current_stage_description": "Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat.", "comments": "" }
 
 Dane wejściowe:
 
