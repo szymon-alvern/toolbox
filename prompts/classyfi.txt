@@ -10,7 +10,8 @@ zwróć wyłącznie jeden poprawny JSON w formacie:
 {
   "current_stage": "STRING",
   "current_stage_description": "STRING",
-  "comments": "STRING"
+  "comments": "STRING",
+  "requires_human_intervention": BOOLEAN
 }
 
 Nie zwracaj żadnego tekstu poza JSON.
@@ -27,7 +28,6 @@ Priorytet interpretacji:
 Dozwolone wartości current_stage:
 - AVAILABILITY
 - PRICING
-- LOCATION
 - CONTACT
 - CLIENT_APPOINTMENT
 - COMPLAINT
@@ -41,7 +41,6 @@ Dozwolone wartości current_stage:
 Mapowanie current_stage -> current_stage_description:
 - AVAILABILITY -> Rozmowa dotyczy sprawdzenia dostępności terminu, sali lub możliwości rezerwacji.
 - PRICING -> Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat.
-- LOCATION -> Rozmowa dotyczy lokalizacji, adresu, dojazdu lub parkingu.
 - CONTACT -> Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.
 - CLIENT_APPOINTMENT -> Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.
 - COMPLAINT -> Rozmowa dotyczy reklamacji, problemu lub zgłoszenia nieprawidłowości.
@@ -53,42 +52,42 @@ Mapowanie current_stage -> current_stage_description:
 - OTHER -> Temat rozmowy nie pasuje do żadnej z głównych kategorii.
 
 Główne zasady:
-1. Klasyfikuj tylko najnowszą wiadomość klienta, nie cały wątek.
-2. Nie przewiduj kolejnego kroku rozmowy.
-3. Nie twórz nowych wartości current_stage.
-4. current_stage_description musi być dokładnie zgodne z mapowaniem powyżej.
-5. Najpierw oceń current_post bez kontekstu.
-6. Użyj conversation_context tylko wtedy, gdy current_post jest krótkie, niepełne, potwierdzające albo zależne od kontekstu.
-7. Szukając znaczenia w conversation_context, analizuj rozmowę od końca i znajdź najbliższe pytanie, prośbę, propozycję lub komunikat, do którego current_post najprawdopodobniej się odnosi.
-8. Jeśli istnieją co najmniej dwie sensowne interpretacje i nie da się wybrać jednej jednoznacznie, wybierz NEED_MORE_DETAILS.
-9. Jeśli nie da się sensownie ustalić kategorii, wybierz UNKNOWN.
-10. Nie zgaduj.
+1. Klasyfikuj tylko najnowszą wiadomość klienta.
+2. Najpierw oceń current_post bez kontekstu.
+3. Użyj conversation_context tylko wtedy, gdy current_post jest krótkie, niepełne, potwierdzające albo zależne od kontekstu.
+4. Analizując conversation_context, szukaj od końca rozmowy najbliższego pytania, propozycji lub komunikatu, do którego current_post się odnosi.
+5. Jeśli są co najmniej dwie sensowne interpretacje i nie da się wybrać jednej, wybierz NEED_MORE_DETAILS.
+6. Jeśli nie da się sensownie ustalić kategorii, wybierz UNKNOWN.
+7. Nie zgaduj.
+8. current_stage_description musi być dokładnie zgodne z mapowaniem powyżej.
 
 Znaczenie kategorii:
 - AVAILABILITY: pytania o wolny termin, dostępność sali, możliwość rezerwacji, sprawdzenie daty lub zakresu dat.
 - PRICING: pytania o cenę, koszt, wycenę, pakiet, stawkę, opłaty.
-- LOCATION: pytania o adres, lokalizację, dojazd, parking.
 - CONTACT: prośba o numer telefonu, e-mail, kontakt, albo przekazanie danych kontaktowych.
 - CLIENT_APPOINTMENT: chęć umówienia spotkania, obejrzenia sali, przyjazdu na miejsce, podania terminu spotkania, odpowiedź na propozycję spotkania, odmowa spotkania.
 - COMPLAINT: zgłoszenie problemu, reklamacji lub nieprawidłowości.
 - FEEDBACK: opinia, podziękowanie lub ocena.
-- GREETING: samodzielne przywitanie albo rozpoczęcie rozmowy bez głównego tematu.
-- FAQ: pytania o zasady, warunki, organizację, wyposażenie, pojemność, dekoracje, alkohol, kuchnię, udogodnienia, noclegi, dostępność dla osób z niepełnosprawnościami i inne informacje praktyczne, jeśli nie pasują jednoznacznie do innych kategorii.
-- NEED_MORE_DETAILS: brakuje jednej konkretnej informacji i jedno krótkie pytanie doprecyzowujące pozwoli ustalić kategorię.
+- GREETING: samodzielne przywitanie bez głównego tematu.
+- FAQ: pytania o zasady, warunki, organizację, wyposażenie, pojemność, dekoracje, alkohol, kuchnię, udogodnienia, noclegi, dostępność dla osób z niepełnosprawnościami, adres, lokalizację, dojazd, parking i inne informacje praktyczne.
+- NEED_MORE_DETAILS: potrzebne jest jedno krótkie pytanie doprecyzowujące.
 - UNKNOWN: brak możliwości sensownej klasyfikacji.
 - OTHER: inny rozpoznany temat.
 
 Zasady szczegółowe:
-1. Jeśli wiadomość zawiera przywitanie i jednocześnie konkretny temat, wybierz temat główny, nie GREETING.
-2. Jeśli wiadomość jest pytaniem i nie pasuje jednoznacznie do AVAILABILITY, PRICING, LOCATION, CONTACT, CLIENT_APPOINTMENT, COMPLAINT ani FEEDBACK, wybierz FAQ.
-3. Jeśli wiadomość dotyczy organizacji wydarzenia, wyposażenia, pojemności, zasad obiektu lub warunków obsługi, zwykle wybierz FAQ.
-4. Jeśli current_post zawiera numer telefonu, fragment numeru telefonu, adres e-mail, fragment adresu e-mail, znak @ lub wyraźną próbę przekazania danych kontaktowych, wybierz CONTACT.
-5. Jeśli current_post zawiera wyłącznie dane kontaktowe lub próbę ich podania, wybierz CONTACT nawet wtedy, gdy kontekst dotyczy spotkania.
+1. Jeśli wiadomość zawiera przywitanie i konkretny temat, wybierz temat główny.
+2. Jeśli wiadomość jest pytaniem i nie pasuje jednoznacznie do AVAILABILITY, PRICING, CONTACT, CLIENT_APPOINTMENT, COMPLAINT ani FEEDBACK, wybierz FAQ.
+3. Jeśli wiadomość dotyczy organizacji wydarzenia, wyposażenia, pojemności, zasad obiektu, warunków obsługi, adresu, lokalizacji, dojazdu lub parkingu, zwykle wybierz FAQ.
+4. Jeśli current_post zawiera numer telefonu, fragment numeru telefonu, adres e-mail, fragment adresu e-mail, znak @ lub próbę przekazania danych kontaktowych, wybierz CONTACT.
+5. Jeśli current_post zawiera wyłącznie dane kontaktowe, wybierz CONTACT nawet jeśli kontekst dotyczy spotkania.
 6. Wybierz CLIENT_APPOINTMENT tylko wtedy, gdy wiadomość jednoznacznie dotyczy spotkania.
-7. Nie wybieraj CLIENT_APPOINTMENT, jeśli spotkanie jest tylko jednym z kilku możliwych znaczeń odpowiedzi.
-8. Krótkie odpowiedzi typu: tak, ok, dobrze, jasne, poproszę, super interpretuj wyłącznie przez najbliższy lokalny kontekst.
-9. Jeśli krótka odpowiedź może odnosić się do więcej niż jednego pytania lub tematu, wybierz NEED_MORE_DETAILS.
-10. Jeśli klient odmawia innego terminu, wybierz AVAILABILITY i ustaw comments = NO_OTHER_DATE.
+7. Krótkie odpowiedzi typu: tak, ok, dobrze, jasne, poproszę, super interpretuj tylko przez najbliższy lokalny kontekst.
+8. Jeśli taka krótka odpowiedź może odnosić się do więcej niż jednego tematu, wybierz NEED_MORE_DETAILS.
+9. Jeśli klient odmawia innego terminu, wybierz AVAILABILITY i ustaw comments = NO_OTHER_DATE.
+10. Jeśli najbliższy lokalny kontekst zawiera propozycję przekazania sprawy do administratora, konsultanta, właściciela lub człowieka, a current_post jednoznacznie to potwierdza, ustaw requires_human_intervention = true.
+11. Jeśli wiadomość dotyczy reklamacji, roszczenia, zwrotu pieniędzy, szkody, sporu, poważnego problemu albo klient wyraźnie chce kontaktu z człowiekiem, ustaw requires_human_intervention = true.
+12. Jeśli klient chce umówić spotkanie, ale chce ustalać szczegóły z administratorem, właścicielem, konsultantem lub człowiekiem, wybierz CLIENT_APPOINTMENT i ustaw requires_human_intervention = true.
+13. Jeśli nie ma podstaw do eskalacji, ustaw requires_human_intervention = false.
 
 Zasady dla comments:
 1. Pole comments musi zawsze wystąpić.
@@ -98,12 +97,18 @@ Zasady dla comments:
    - WANT_TO_MEET
    - DOES_NOT_WANT_TO_MEET
    - NO_OTHER_DATE
-3. Jeśli current_stage = CLIENT_APPOINTMENT, comments musi mieć wartość:
-   - WANT_TO_MEET
-   - albo DOES_NOT_WANT_TO_MEET
+3. Jeśli current_stage = CLIENT_APPOINTMENT, comments:
+   - WANT_TO_MEET, gdy klient chce spotkania
+   - DOES_NOT_WANT_TO_MEET, gdy klient odmawia spotkania
 4. Jeśli current_stage = NEED_MORE_DETAILS, comments musi zawierać jedno krótkie pytanie doprecyzowujące.
 5. Jeśli current_stage = AVAILABILITY i klient odmawia innego terminu, comments = NO_OTHER_DATE.
 6. W pozostałych przypadkach comments = "".
+
+Zasady dla requires_human_intervention:
+1. Pole requires_human_intervention musi zawsze wystąpić.
+2. Dozwolone wartości:
+   - true
+   - false
 
 Przykłady:
 1.
@@ -113,7 +118,7 @@ current_stage: "PRICING"
 current_stage_description: "Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat."
 conversation_context: "automatyzacja: Cena za talerzyk zaczyna się od 320 zł. Jeśli chcesz, mogę też opisać co zawiera pakiet."
 Output:
-{ "current_stage": "PRICING", "current_stage_description": "Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat.", "comments": "" }
+{ "current_stage": "PRICING", "current_stage_description": "Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat.", "comments": "", "requires_human_intervention": false }
 
 2.
 Input:
@@ -122,7 +127,7 @@ current_stage: "FAQ"
 current_stage_description: "Rozmowa dotyczy ogólnego pytania klienta o zasady, warunki, wyposażenie, organizację, pojemność, przebieg obsługi lub inne informacje praktyczne, które nie pasują jednoznacznie do innych głównych kategorii."
 conversation_context: ""
 Output:
-{ "current_stage": "CLIENT_APPOINTMENT", "current_stage_description": "Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.", "comments": "WANT_TO_MEET" }
+{ "current_stage": "CLIENT_APPOINTMENT", "current_stage_description": "Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.", "comments": "WANT_TO_MEET", "requires_human_intervention": false }
 
 3.
 Input:
@@ -131,7 +136,7 @@ current_stage: "AVAILABILITY"
 current_stage_description: "Rozmowa dotyczy sprawdzenia dostępności terminu, sali lub możliwości rezerwacji."
 conversation_context: "automatyzacja: Mamy wolny termin 18 września. Jeśli chcesz, możemy też umówić spotkanie na miejscu."
 Output:
-{ "current_stage": "NEED_MORE_DETAILS", "current_stage_description": "Wymagana jest dodatkowa informacja do jednoznacznego określenia tematu rozmowy.", "comments": "Czy chcesz umówić spotkanie na miejscu?" }
+{ "current_stage": "NEED_MORE_DETAILS", "current_stage_description": "Wymagana jest dodatkowa informacja do jednoznacznego określenia tematu rozmowy.", "comments": "Czy chcesz umówić spotkanie na miejscu?", "requires_human_intervention": false }
 
 4.
 Input:
@@ -140,7 +145,7 @@ current_stage: "AVAILABILITY"
 current_stage_description: "Rozmowa dotyczy sprawdzenia dostępności terminu, sali lub możliwości rezerwacji."
 conversation_context: "[01.04 15:45] System: Możemy spotkać się w dniu 02.04.2026 o godzinie 18:00. Proszę o przesłanie numeru telefonu w celu potwierdzenia terminu."
 Output:
-{ "current_stage": "CONTACT", "current_stage_description": "Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.", "comments": "" }
+{ "current_stage": "CONTACT", "current_stage_description": "Rozmowa dotyczy danych kontaktowych lub prośby o kontakt.", "comments": "", "requires_human_intervention": false }
 
 5.
 Input:
@@ -149,25 +154,25 @@ current_stage: "UNKNOWN"
 current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
 conversation_context: ""
 Output:
-{ "current_stage": "GREETING", "current_stage_description": "Rozmowa dotyczy przywitania, rozpoczęcia kontaktu lub krótkiego small talku otwierającego rozmowę.", "comments": "" }
+{ "current_stage": "GREETING", "current_stage_description": "Rozmowa dotyczy przywitania, rozpoczęcia kontaktu lub krótkiego small talku otwierającego rozmowę.", "comments": "", "requires_human_intervention": false }
 
 6.
 Input:
-current_post: "dzień dobry, jaki jest koszt wynajmu?"
-current_stage: "UNKNOWN"
-current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
-conversation_context: ""
+current_post: "tak, proszę"
+current_stage: "FAQ"
+current_stage_description: "Rozmowa dotyczy ogólnego pytania klienta o zasady, warunki, wyposażenie, organizację, pojemność, przebieg obsługi lub inne informacje praktyczne, które nie pasują jednoznacznie do innych głównych kategorii."
+conversation_context: "system: Nie mam takich informacji. Czy przekazać pytanie do administratora w celu odpowiedzi?"
 Output:
-{ "current_stage": "PRICING", "current_stage_description": "Rozmowa dotyczy cen, kosztów, pakietów lub dodatkowych opłat.", "comments": "" }
+{ "current_stage": "FAQ", "current_stage_description": "Rozmowa dotyczy ogólnego pytania klienta o zasady, warunki, wyposażenie, organizację, pojemność, przebieg obsługi lub inne informacje praktyczne, które nie pasują jednoznacznie do innych głównych kategorii.", "comments": "", "requires_human_intervention": true }
 
 7.
 Input:
-current_post: "czy można wejść dzień wcześniej, żeby udekorować salę?"
+current_post: "chcę się umówić, ale proszę, żeby właściciel zadzwonił i ustalił termin"
 current_stage: "UNKNOWN"
 current_stage_description: "Nie rozpoznany jeszcze temat rozmowy."
 conversation_context: ""
 Output:
-{ "current_stage": "FAQ", "current_stage_description": "Rozmowa dotyczy ogólnego pytania klienta o zasady, warunki, wyposażenie, organizację, pojemność, przebieg obsługi lub inne informacje praktyczne, które nie pasują jednoznacznie do innych głównych kategorii.", "comments": "" }
+{ "current_stage": "CLIENT_APPOINTMENT", "current_stage_description": "Rozmowa dotyczy umawiania spotkania z klientem w celu ustalenia szczegółów imprezy.", "comments": "WANT_TO_MEET", "requires_human_intervention": true }
 
 Dane wejściowe:
 
