@@ -246,7 +246,15 @@ async def checking_data(phone_number: str | None=None, name: str | None=None, la
     b = ""
     c = ""
     d = "" 
+    info = "NEED_DATA_TO_CHECK"
+    if name:
+        name = name.capitalize()
+        info = "OK"
+    if last_name:
+        last_name = last_name.capitalize()
+        info = "OK"
     if phone_number:
+        print("Inside phone")
         row_phone_number = []
         for i in phone_number:
             if i.isdigit():
@@ -260,23 +268,14 @@ async def checking_data(phone_number: str | None=None, name: str | None=None, la
             c = row_phone_number[5:8]
             d = row_phone_number[8:11]   
             phone_number = f'+{a} {b} {c} {d}' 
-            status = "OK"        
+            info = "OK"        
         else:
-            status = "BAD_NUMBER"  
-    if name:
-        name = name.capitalize()
-    if last_name:
-        last_name = last_name.capitalize()
-    else:
-        return {"checking": "NEED_DATA_TO_CHECK",
-                "phone": "",
-                "name": "",
-                "last_name": ""}
-    return{"checking": status,
+            info = "BAD_NUMBER"  
+    return{"checking": info,
         "phone": phone_number,
         "name": name,
         "last_name": last_name}
-                
+
 
 def system_response(*, name_build_task: str, name: str | None=None, last_name:str | None=None, phone: str | None=None, 
               meeting_time: str | None=None, event_date: str | None=None) -> str:
