@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
-from utils import IdsData, generate_link, Post, ai_answer, def_current_date, Checking, checking_data
+from utils import IdsData, Post, Checking, PhoneCall
+from utils import generate_link, ai_answer, def_current_date, checking_data, system_response
 
 app = FastAPI()
 
@@ -57,6 +58,13 @@ async def today():
 async def check(request: Checking):
     result = await checking_data(phone_number=request.phone_number, name=request.name, last_name=request.last_name)
     return result
+
+
+@app.post("/phone_call")
+def call(request:PhoneCall):
+    response = system_response(name_build_task="phone_call", name=request.name, last_name=request.last_name, phone=request.phone, 
+    meeting_time=request.meeting_time, event_date=request.event_date)
+    return {"response": response}
 
 
 

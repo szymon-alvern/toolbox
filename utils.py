@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import random
 import json
 import os
-from config import CONFIG_LINK_GOOGLE_FORM, CONFIG_LINK_FILLOUT, AI_PROVIDER_LIST, TASKS
+from config import CONFIG_LINK_GOOGLE_FORM, CONFIG_LINK_FILLOUT, AI_PROVIDER_LIST, TASKS, RESPONSE_BUILDERS
 from ai_provider import get_ai_provider
 
 
@@ -33,6 +33,14 @@ class Checking(BaseModel):
     phone_number: str | None=None
     name: str | None=None
     last_name: str | None=None
+
+
+class PhoneCall(BaseModel):
+    name: str | None=None
+    last_name:str | None=None
+    phone: str | None=None
+    meeting_time: str | None=None 
+    event_date: str | None=None
 
 
 def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None,
@@ -269,3 +277,33 @@ async def checking_data(phone_number: str | None=None, name: str | None=None, la
         "last_name": last_name}
                 
 
+def system_response(*, name_build_task: str, name: str | None=None, last_name:str | None=None, phone: str | None=None, 
+              meeting_time: str | None=None, event_date: str | None=None) -> str:
+    DATA  ={
+        "name": name,
+        "last_name": last_name,
+        "phone": phone,
+        "meeting_time": meeting_time,
+        "event_date": event_date
+
+    }
+    if name_build_task in RESPONSE_BUILDERS:
+        build_task = RESPONSE_BUILDERS.get(name_build_task)
+        data_list = build_task.get("fields")
+        answers_list = []
+        for data in data_list:
+            val = DATA.get(data)
+            if val is None:
+                continue
+            if not isinstance(val, str):
+                continue
+            if val.strip() == "":
+                continue
+            messages = build_task.get("messages")
+            answer = messages.get(data)
+            answer_val = answer.format(value = val)
+            answers_list.append(answer_val)
+        system_answers = "\n".join(answers_list)
+    else:
+        return ("")
+    return system_answers

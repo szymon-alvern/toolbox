@@ -52,3 +52,18 @@ TASKS = {
     "phone_extract": {"required": ["current_post"],
             "build": ["current_post", "conversation_context"]}
     }
+
+
+RESPONSE_BUILDERS = {
+    "phone_call":{
+        "fields":["name", "last_name", "phone", "meeting_time", "event_date"],
+        "messages":
+            {"name": "- zapisano imię klienta: {value}",
+            "last_name": "- zapisano nazwisko klienta: {value}",
+            "phone": "- zapisano numer telefonu klienta: {value}",
+            "meeting_time": "- Zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
+            "event_date": "- Planowana data imprezy {value}"}
+        
+    }
+}
+
