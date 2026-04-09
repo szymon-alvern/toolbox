@@ -52,7 +52,9 @@ TASKS = {
     "phone_extract": {"required": ["current_post"],
             "build": ["current_post", "conversation_context"]},
     "time_extract": {"required": ["current_post", "current_date"],
-            "build": ["current_post", "current_date"]}
+            "build": ["current_post", "current_date"]},
+    "data_from_call": {"required": ["current_post"],
+            "build": ["current_post"]}      
     }
 
 

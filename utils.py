@@ -203,7 +203,7 @@ conversation_context: str | None=None, current_date: str | None=None) -> dict:
             provider_name = provider["name"]
             provider_model = provider["model"]
             current_model = get_ai_provider(provider_name, provider_model)
-            if task == "classyfi":
+            if task in ("classyfi", "data_from_call"):
                 current_model = get_ai_provider("OpenAI", "gpt-5.4")
             current_day = None
             ai_result = await current_model._call_api(prompt=prompt)

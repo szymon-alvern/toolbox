@@ -55,6 +55,12 @@ async def date_hour_extract(request: Post):
     return respons
 
 
+@app.post("/extract/data_from_call")
+async def data_from_call(request: Post):
+    respons = await ai_answer(task="data_from_call", current_post=request.current_post)
+    return respons
+
+
 @app.post("/today")
 async def today():
     now = def_current_date(time_zone="Europe/Warsaw", date_format="%d-%m-%Y", hour_format="%H:%M:%")
