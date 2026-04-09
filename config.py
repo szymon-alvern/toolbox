@@ -50,7 +50,9 @@ TASKS = {
     "date_hour_extract": {"required": ["current_post", "current_date"],
             "build": ["current_post", "current_date", "conversation_context"]},
     "phone_extract": {"required": ["current_post"],
-            "build": ["current_post", "conversation_context"]}
+            "build": ["current_post", "conversation_context"]},
+    "time_extract": {"required": ["current_post", "current_date"],
+            "build": ["current_post", "current_date"]}
     }
 
 

@@ -43,6 +43,7 @@ class PhoneCall(BaseModel):
     event_date: str | None=None
 
 
+
 def generate_link(id: str, task: str, platform: str, source: str | None=None, channel_account_id: str | None=None, caused_by_event_id: str | None=None,
 phone_number: str | None=None, meeting_time: str | None=None, name: str | None=None, last_name: str | None=None)     -> str:
     if platform == "google_form":
@@ -110,8 +111,8 @@ def load_prompt(task: str) -> str:
         raise ValueError (f'nie obsługiwane zadanie: {task}')
 
 
-def prompt_generator(*, task: str, current_post: str, current_stage: str, 
-current_stage_description: str, conversation_context: str | None=None, current_date: str | None=None) -> str:
+def prompt_generator(*, task: str, current_post: str, current_stage: str | None=None, 
+current_stage_description: str | None=None, conversation_context: str | None=None, current_date: str | None=None) -> str:
     if task is None or isinstance(task, str) and not task.strip():
         raise ValueError ('Temat jest wymagany')
     values = {
@@ -130,7 +131,7 @@ current_stage_description: str, conversation_context: str | None=None, current_d
         build = TASKS[task]["build"]
         payload = {}
         for b in build:
-            k = values[b]
+            k = values.get(b)
             if k is None or isinstance(k, str) and not k.strip():
                 continue           
             payload[b] = k
