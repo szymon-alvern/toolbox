@@ -60,14 +60,26 @@ TASKS = {
 
 RESPONSE_BUILDERS = {
     "phone_call":{
-        "fields":["name", "last_name", "phone", "meeting_time", "event_date"],
+        "fields":["case_id", "meeting_time", "phone", "name", "last_name", "email", "event_type", "event_date", "start_event_time",
+                  "guest_count", "customer_notes", "owner_notes", "needs_follow_up"],
         "messages":
-            {"name": "- zapisano imię klienta: {value}",
+            {"case_id":"Numer sprawy {value}",
+            "name": "- zapisano imię klienta: {value}",
             "last_name": "- zapisano nazwisko klienta: {value}",
             "phone": "- zapisano numer telefonu klienta: {value}",
-            "meeting_time": "- Zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
-            "event_date": "- Planowana data imprezy {value}"}
-        
+            "email": "- zapisano email do klienta{value}",
+            "meeting_time": {
+                True: "- zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
+                False: "- UWAGA!!! Podana data {value} jest zajęta, sprawdź jeszcze raz i ewentualnie poinformuj klienta o zmianie"},
+            "event_date": "- planowana data imprezy {value}",
+            "event_type": "- typ imprezy {value}",
+            "start_event_time": "- planowana godzina rozpoczecia imprezy {value}",
+            "guest_count": "- orientacyjna liczba gości {value}",
+            "customer_notes": "Invormacja od klienta: {value}", 
+            "owner_notes": "Moja notatka: {value}", 
+            "needs_follow_up": {True: "Konieczna informacja zwrotna do klienta",
+                                False: "Klient ma wszystkie informacje"}
+            }   
     }
 }
 

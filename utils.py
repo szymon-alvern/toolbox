@@ -36,11 +36,20 @@ class Checking(BaseModel):
 
 
 class PhoneCall(BaseModel):
-    name: str | None=None
-    last_name:str | None=None
+    case_id: str
+    meeting_time: str | None=None
+    available: bool | None=None
     phone: str | None=None
-    meeting_time: str | None=None 
+    name: str | None=None
+    last_name: str | None=None
+    email: str | None=None
+    event_type: str | None=None
     event_date: str | None=None
+    start_event_time: str | None=None
+    guest_count: str | None=None
+    customer_notes: str | None=None
+    owner_notes: str | None=None
+    needs_follow_up: bool | None=None
 
 
 
@@ -277,21 +286,35 @@ async def checking_data(phone_number: str | None=None, name: str | None=None, la
         "last_name": last_name}
 
 
-def system_response(*, name_build_task: str, name: str | None=None, last_name:str | None=None, phone: str | None=None, 
-              meeting_time: str | None=None, event_date: str | None=None) -> str:
+def system_response(*, name_build_task: str, case_id:str, meeting_time: str | None=None, available: bool | None=None, phone: str | None=None,
+    name: str | None=None, last_name: str | None=None, email: str | None=None, event_type: str | None=None, event_date: str | None=None, 
+    start_event_time: str | None=None, guest_count: str | None=None, customer_notes: str | None=None, owner_notes: str | None=None, 
+    needs_follow_up: bool | None=None) -> str:
+    print("start system_response")
     DATA  ={
+        "case_id": case_id,
+        "meeting_time": meeting_time,
+        "available": available,
         "name": name,
         "last_name": last_name,
+        "email": email,
         "phone": phone,
-        "meeting_time": meeting_time,
-        "event_date": event_date
-
+        "event_type": event_type,     
+        "event_date": event_date,
+        "start_event_time": start_event_time,
+        "guest_count": guest_count,
+        "customer_notes": customer_notes,
+        "owner_notes": owner_notes,
+        "needs_follow_up": needs_follow_up
     }
     if name_build_task in RESPONSE_BUILDERS:
+        print("start build_task")
         build_task = RESPONSE_BUILDERS.get(name_build_task)
+        print(build_task)
         data_list = build_task.get("fields")
         answers_list = []
         for data in data_list:
+            print(data)
             val = DATA.get(data)
             if val is None:
                 continue
@@ -301,6 +324,12 @@ def system_response(*, name_build_task: str, name: str | None=None, last_name:st
                 continue
             messages = build_task.get("messages")
             answer = messages.get(data)
+            if data == "meeting_time":
+                answer = answer.get("available")
+                print(f"answer:{answer}")
+            if data == "needs_follow_up":
+                answer = answer.get("needs_follow_up")
+            print(data, answer, val)
             answer_val = answer.format(value = val)
             answers_list.append(answer_val)
         system_answers = "\n".join(answers_list)

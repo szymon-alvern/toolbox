@@ -75,9 +75,11 @@ async def check(request: Checking):
 
 @app.post("/phone_call")
 def call(request:PhoneCall):
-    response = system_response(name_build_task="phone_call", name=request.name, last_name=request.last_name, phone=request.phone, 
-    meeting_time=request.meeting_time, event_date=request.event_date)
-    return {"response": response}
+    response = system_response(name_build_task="phone_call",case_id=request.case_id, meeting_time=request.meeting_time,
+    available=request.available, phone=request.phone, name=request.name, last_name=request.last_name, email=request.email,
+    event_type=request.event_type, event_date=request.event_date, start_event_time=request.start_event_time, guest_count=request.guest_count,
+    customer_notes=request.customer_notes, owner_notes=request.owner_notes, needs_follow_up=request.needs_follow_up)
+    return response
 
 
 
