@@ -79,7 +79,7 @@ def call(request:PhoneCall):
     available=request.available, phone=request.phone, name=request.name, last_name=request.last_name, email=request.email,
     event_type=request.event_type, event_date=request.event_date, start_event_time=request.start_event_time, guest_count=request.guest_count,
     customer_notes=request.customer_notes, owner_notes=request.owner_notes, needs_follow_up=request.needs_follow_up)
-    return response
+    return {"text": response}
 
 
 
