@@ -326,10 +326,14 @@ def system_response(*, name_build_task: str, case_id:str, meeting_time: str | No
             answer = messages.get(data)
             if data == "meeting_time":
                 answer = answer.get("available")
+                if answer is None:
+                    continue
                 print(f"answer:{answer}")
             if data == "needs_follow_up":
                 answer = answer.get("needs_follow_up")
-            print(data, answer, val)
+                if answer is None:
+                    continue
+                print(data, answer, val)
             answer_val = answer.format(value = val)
             answers_list.append(answer_val)
         system_answers = "\n".join(answers_list)
