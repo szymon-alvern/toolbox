@@ -63,22 +63,22 @@ RESPONSE_BUILDERS = {
         "fields":["case_id", "meeting_time", "phone", "name", "last_name", "email", "event_type", "event_date", "start_event_time",
                   "guest_count", "customer_notes", "owner_notes", "needs_follow_up"],
         "messages":
-            {"case_id":"Numer sprawy {value}",
-            "name": "- zapisano imię klienta: {value}",
-            "last_name": "- zapisano nazwisko klienta: {value}",
-            "phone": "- zapisano numer telefonu klienta: {value}",
-            "email": "- zapisano email do klienta{value}",
+            {"case_id":"- Numer sprawy: {value}",
+            "name": "- Zapisano imię klienta: {value}",
+            "last_name": "- Zapisano nazwisko klienta: {value}",
+            "phone": "- Zapisano numer telefonu klienta: {value}",
+            "email": "- Zapisano email do klienta: {value}",
             "meeting_time": {
-                True: "- zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
+                True: "- Zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
                 False: "- UWAGA!!! Podana data {value} jest zajęta, sprawdź jeszcze raz i ewentualnie poinformuj klienta o zmianie"},
-            "event_date": "- planowana data imprezy {value}",
-            "event_type": "- typ imprezy {value}",
-            "start_event_time": "- planowana godzina rozpoczecia imprezy {value}",
-            "guest_count": "- orientacyjna liczba gości {value}",
-            "customer_notes": "Invormacja od klienta: {value}", 
-            "owner_notes": "Moja notatka: {value}", 
-            "needs_follow_up": {True: "Konieczna informacja zwrotna do klienta",
-                                False: "Klient ma wszystkie informacje"}
+            "event_date": "- Planowana data imprezy {value}",
+            "event_type": "- Typ imprezy {value}",
+            "start_event_time": "- Planowana godzina rozpoczecia imprezy {value}",
+            "guest_count": "- Orientacyjna liczba gości {value}",
+            "customer_notes": "- Informacja od klienta: {value}", 
+            "owner_notes": "- Moja notatka: {value}", 
+            "needs_follow_up": {True: "- Konieczna informacja zwrotna do klienta",
+                                False: "- Klient ma wszystkie informacje"}
             }   
     }
 }

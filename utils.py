@@ -308,32 +308,29 @@ def system_response(*, name_build_task: str, case_id:str, meeting_time: str | No
         "needs_follow_up": needs_follow_up
     }
     if name_build_task in RESPONSE_BUILDERS:
-        print("start build_task")
         build_task = RESPONSE_BUILDERS.get(name_build_task)
-        print(build_task)
         data_list = build_task.get("fields")
         answers_list = []
         for data in data_list:
-            print(data)
             val = DATA.get(data)
             if val is None:
                 continue
-            if not isinstance(val, str):
-                continue
-            if val.strip() == "":
+            if isinstance(val, str):
+                val = val.strip()
+                if val.strip() == "":
+                    continue
+            if not (isinstance(val, str) or isinstance(val, bool)):
                 continue
             messages = build_task.get("messages")
             answer = messages.get(data)
             if data == "meeting_time":
-                answer = answer.get("available")
+                answer = answer.get(available)
                 if answer is None:
                     continue
-                print(f"answer:{answer}")
             if data == "needs_follow_up":
-                answer = answer.get("needs_follow_up")
+                answer = answer.get(needs_follow_up)
                 if answer is None:
                     continue
-                print(data, answer, val)
             answer_val = answer.format(value = val)
             answers_list.append(answer_val)
         system_answers = "\n".join(answers_list)
