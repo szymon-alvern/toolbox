@@ -38,7 +38,7 @@ class Checking(BaseModel):
 class PhoneCall(BaseModel):
     case_id: str
     meeting_time: str | None=None
-    available: bool | None=None
+    available: str | None=None
     phone: str | None=None
     name: str | None=None
     last_name: str | None=None
@@ -286,7 +286,7 @@ async def checking_data(phone_number: str | None=None, name: str | None=None, la
         "last_name": last_name}
 
 
-def system_response(*, name_build_task: str, case_id:str, meeting_time: str | None=None, available: bool | None=None, phone: str | None=None,
+def system_response(*, name_build_task: str, case_id:str, meeting_time: str | None=None, available: str | None=None, phone: str | None=None,
     name: str | None=None, last_name: str | None=None, email: str | None=None, event_type: str | None=None, event_date: str | None=None, 
     start_event_time: str | None=None, guest_count: str | None=None, customer_notes: str | None=None, owner_notes: str | None=None, 
     needs_follow_up: bool | None=None) -> str:
@@ -327,6 +327,14 @@ def system_response(*, name_build_task: str, case_id:str, meeting_time: str | No
                 answer = answer.get(available)
                 if answer is None:
                     continue
+                if available != "no_date":
+                    meeting_time_obj = datetime.datetime.strptime(meeting_time, "%Y-%m-%dT%H:%M:%SZ")
+                    meeting_time_utc = meeting_time_obj.replace(tzinfo=datetime.timezone.utc)
+                    war_zone = ZoneInfo("Europe/Warsaw")
+                    meeting_time_row = meeting_time_utc.astimezone(war_zone)
+                    day = meeting_time_row.strftime("%Y-%m-%d")
+                    hour = meeting_time_row.strftime("%H:%M")
+                    val = f"{day} godzina: {hour}"
             if data == "needs_follow_up":
                 answer = answer.get(needs_follow_up)
                 if answer is None:
@@ -337,3 +345,5 @@ def system_response(*, name_build_task: str, case_id:str, meeting_time: str | No
     else:
         return ("")
     return system_answers
+
+

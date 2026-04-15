@@ -69,8 +69,9 @@ RESPONSE_BUILDERS = {
             "phone": "- Zapisano numer telefonu klienta: {value}",
             "email": "- Zapisano email do klienta: {value}",
             "meeting_time": {
-                True: "- Zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
-                False: "- UWAGA!!! Podana data {value} jest zajęta, sprawdź jeszcze raz i ewentualnie poinformuj klienta o zmianie"},
+                "true": "- Zapisano datę spotkania z klientem w kalendarzu.\n - Data i godzina spotkania {value}",
+                "false": "- UWAGA!!! Podana data {value} jest zajęta, sprawdź jeszcze raz i ewentualnie poinformuj klienta o zmianie",
+                "no_date": "- BRAK DATY SPOTKANIA"},
             "event_date": "- Planowana data imprezy {value}",
             "event_type": "- Typ imprezy {value}",
             "start_event_time": "- Planowana godzina rozpoczecia imprezy {value}",
