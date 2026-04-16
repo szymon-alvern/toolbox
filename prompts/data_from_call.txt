@@ -14,16 +14,90 @@ Zasady:
 - Adres email zawsze zwracaj małymi literami.
 - Jeśli adres email jest zapisany standardowo, przepisz go poprawnie.
 - Jeśli adres email jest zapisany słownie, np. „małpa”, „kropka” lub zawiera liczebniki zapisane słownie, zamień go na standardowy zapis email.
+- Przy normalizacji emaila poprawiaj tylko oczywiste i jednoznaczne elementy zapisu.
+- Jeśli email nie daje się odtworzyć jednoznacznie, wpisz `null`.
 - Daty zapisuj w formacie `YYYY-MM-DD`, ale tylko jeśli są jednoznaczne.
 - Godziny zapisuj w formacie `HH:MM`, ale tylko jeśli są jednoznaczne.
 - `guest_count` zwracaj jako liczbę całkowitą albo `null`.
+- Jeśli liczba gości jest podana orientacyjnie, np. „około 25”, „mniej więcej 30”, zwróć samą liczbę całkowitą, jeśli zakres znaczenia jest jasny.
 - `event_type` zwracaj w możliwie krótkiej i podstawowej formie, np. `wesele`, `komunia`, `chrzciny`, `urodziny`, `konsolacja`, `firma`; jeśli nie da się ustalić jednoznacznie, wpisz `null`.
 - `customer_notes` powinno zawierać wyłącznie informacje istotne z perspektywy klienta, np. preferencje, wymagania, budżet, oczekiwania.
 - `owner_notes` powinno zawierać wyłącznie informacje o działaniach do wykonania, np. oddzwonić, wysłać ofertę, potwierdzić termin, doprecyzować szczegóły.
+- Nie przenoś informacji między polami na podstawie domysłów.
 - Pole `needs_follow_up` ustaw:
   - `true` jeśli trzeba oddzwonić, wysłać ofertę, potwierdzić termin albo doprecyzować szczegóły
   - `false` jeśli sprawa wygląda na zamkniętą
   - `null` jeśli nie da się tego ustalić
+
+Krytyczne zasady bezpieczeństwa:
+- Priorytetem jest precyzja, a nie kompletność.
+- Lepiej zwrócić `null` niż błędną wartość.
+- Nie wolno uzupełniać danych z wiedzy ogólnej, stereotypów, skojarzeń ani najczęstszych przypadków.
+- Nie wolno zgadywać imienia, nazwiska, daty, godziny, typu wydarzenia ani liczby gości, jeśli nie wynikają dostatecznie jasno z tekstu.
+- Jeśli tekst wygląda na transkrypcję mowy i zawiera błędy ASR, literówki, urwane słowa lub zapis fonetyczny, zachowaj szczególną ostrożność.
+- Gdy informacja jest niepełna, zaszumiona albo wieloznaczna, zwróć `null`.
+
+Dodatkowe zasady dotyczące imion:
+- Notatka może zawierać błędy literowe, fonetyczne, przekręcenia, formy zasłyszane lub błędy transkrypcji mowy.
+- W polu `name` wolno wpisać poprawioną, najbardziej prawdopodobną polską formę imienia tylko wtedy, gdy z kontekstu i zapisu wynika to z bardzo wysoką pewnością.
+- Dla imion możesz stosować ostrożne dopasowanie fonetyczne i literowe do najbliższego polskiego imienia.
+- Uwzględniaj możliwość błędów takich jak: zamiana głosek, brak polskich znaków, podwojenia lub pominięcia liter, zapis fonetyczny, błędy rozpoznania mowy, np. `Aedam`, `Adom`, `Aidam` jako potencjalne `Adam`, ale tylko przy bardzo wysokiej pewności.
+- Jeśli zapis imienia może odpowiadać kilku sensownym polskim imionom, nie wybieraj żadnego i wpisz `null`.
+- Wpisz poprawione imię wyłącznie wtedy, gdy pewność wynosi co najmniej 95%.
+- Za podobnie prawdopodobne uznaj sytuacje, w których różnica między najlepszą a drugą sensowną interpretacją jest mniejsza niż 15 punktów procentowych.
+- Jeśli przykładowo zapis może znaczyć `Ola`, `Ala`, `Pola` albo inną zbliżoną formę i nie ma wyraźnej przewagi jednej opcji, wpisz `null`.
+- Preferuj polskie, najczęściej spotykane formy imion tylko wtedy, gdy są zgodne z zapisem i kontekstem.
+- Nie twórz imienia na podstawie samego przybliżonego brzmienia, jeśli nie jest to bardzo wiarygodne.
+- Jeżeli imię występuje w formie odmienionej, zwróć mianownik tylko wtedy, gdy jest jednoznaczny.
+- Jeżeli imię występuje jako zdrobnienie lub forma potoczna, np. `Kasia`, `Basia`, `Ania`, `Ola`, `Asia`, `Ela`, `Gosia`, wolno zwrócić odpowiadającą podstawową formę tylko wtedy, gdy jest jednoznaczna w języku polskim.
+- Jeśli zdrobnienie może odpowiadać więcej niż jednej formie podstawowej albo istnieje realna niejednoznaczność, wpisz dokładnie taką formę, jaka rzeczywiście występuje w tekście, tylko jeśli jest użyta jako imię własne wprost; w przeciwnym razie wpisz `null`.
+- Jeżeli nie masz co najmniej 95% pewności co do imienia, wpisz `null`.
+- Nigdy nie zgaduj imienia na siłę.
+
+Dodatkowe zasady dotyczące nazwisk:
+- W polu `last_name` wpisuj nazwisko tylko wtedy, gdy zostało podane wprost albo jego poprawna forma wynika z tekstu z co najmniej 95% pewnością.
+- Nazwiska są bardziej podatne na błędy niż imiona, dlatego stosuj jeszcze większą ostrożność.
+- Nie rekonstruuj nazwiska wyłącznie na podstawie podobieństwa fonetycznego, jeśli istnieje kilka realnych możliwości.
+- Jeśli nazwisko jest urwane, niepełne, przeliterowane częściowo albo zniekształcone, wpisz `null`, chyba że poprawna forma jest praktycznie pewna.
+- Jeśli zapis może odpowiadać kilku nazwiskom o podobnym prawdopodobieństwie, wpisz `null`.
+- Nie dopisuj końcówek fleksyjnych ani nie odmieniaj nazwiska, jeśli nie masz pewności co do formy podstawowej.
+- Jeśli nazwisko pojawia się tylko w adresie email, nie używaj go automatycznie jako nazwiska klienta, chyba że zgodność z resztą tekstu jest bardzo wyraźna i jednoznaczna.
+- Jeżeli nie masz co najmniej 95% pewności co do nazwiska, wpisz `null`.
+
+Dodatkowe zasady dotyczące rozpoznawania osoby:
+- Uzupełniaj `name` i `last_name` tylko dla osoby, której dotyczy kontakt jako klienta.
+- Jeśli w notatce pojawia się kilka osób, wybierz dane tylko wtedy, gdy jasno wynika, kto jest klientem.
+- Jeśli nie wiadomo, czy podane imię należy do klienta, członka rodziny, dziecka, organizatora lub innej osoby, wpisz `null`.
+- Nie łącz automatycznie imienia jednej osoby z nazwiskiem innej osoby wspomnianej w notatce.
+
+Dodatkowe zasady dotyczące notatek:
+- `customer_notes` powinno zawierać krótki, rzeczowy zapis preferencji, oczekiwań, ograniczeń, budżetu, wymagań lub warunków klienta.
+- `owner_notes` powinno zawierać tylko działania operacyjne do wykonania po stronie właściciela lub obsługi.
+- Nie kopiuj całej notatki do `customer_notes` ani `owner_notes`.
+- Jeśli brak treści pasującej do danego pola, wpisz `null`.
+- Jeśli ta sama informacja jest zarówno oczekiwaniem klienta, jak i zadaniem do wykonania, rozdziel ją logicznie między oba pola tylko wtedy, gdy wynika to jasno z tekstu.
+
+Dodatkowe zasady dotyczące dat i czasu:
+- Normalizuj datę tylko wtedy, gdy dzień, miesiąc i rok są jednoznaczne.
+- Jeśli brakuje roku lub data jest względna, np. „za dwa tygodnie”, „w sobotę”, „na maj”, wpisz `null`, chyba że rok i dokładna data wynikają jednoznacznie z treści.
+- Godzinę zwracaj tylko wtedy, gdy jest jasno wskazana jako godzina rozpoczęcia wydarzenia.
+- Jeśli godzina dotyczy telefonu, oddzwonienia, spotkania organizacyjnego albo jest niejednoznaczna, nie wpisuj jej do `start_event_time`.
+
+Dodatkowe zasady dotyczące typu wydarzenia:
+- Normalizuj synonimy i odmiany do krótkiej formy podstawowej, np. `urodziny`, `wesele`, `komunia`.
+- Jeśli tekst sugeruje kilka możliwych typów wydarzenia albo opis jest zbyt ogólny, wpisz `null`.
+- Nie wnioskuj typu wydarzenia wyłącznie z liczby gości, daty lub wieku dziecka.
+
+Dodatkowe zasady dotyczące liczby gości:
+- Zwracaj jedną liczbę całkowitą tylko wtedy, gdy jest wystarczająco jasna.
+- Jeśli pojawia się zakres, np. „25–30 osób”, „około 20 do 25”, wpisz `null`, chyba że z treści wyraźnie wynika jedna liczba docelowa.
+- Nie odejmuj dzieci, obsługi ani dodatkowych osób, jeśli tekst tego wprost nie wskazuje.
+
+Przy rozstrzyganiu niejednoznaczności stosuj tę kolejność priorytetów:
+1. dosłowne i jednoznaczne informacje z tekstu,
+2. jednoznaczny kontekst zdania,
+3. ostrożna normalizacja oczywistych zapisów,
+4. w każdej innej sytuacji `null`.
 
 Użyj dokładnie takiej struktury JSON:
 
